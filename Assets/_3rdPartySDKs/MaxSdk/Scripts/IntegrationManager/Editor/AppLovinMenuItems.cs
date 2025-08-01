@@ -11,7 +11,7 @@ using UnityEngine;
 
 namespace AppLovinMax.Scripts.IntegrationManager.Editor
 {
-    public static class AppLovinMenuItems
+    public class AppLovinMenuItems
     {
         /**
          * The special characters at the end represent a shortcut for this action.

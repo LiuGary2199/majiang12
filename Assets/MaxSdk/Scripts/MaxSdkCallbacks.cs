@@ -744,8 +744,8 @@ public static class MaxSdkCallbacks
         }
         else if (eventName == "OnApplicationStateChanged")
         {
-            var UpDirect = MaxSdkUtils.GetBoolFromDictionary(eventProps, "UpDirect");
-            InvokeEvent(onApplicationStateChangedEvent, UpDirect, eventName, keepInBackground);
+            var isPaused = MaxSdkUtils.GetBoolFromDictionary(eventProps, "isPaused");
+            InvokeEvent(onApplicationStateChangedEvent, isPaused, eventName, keepInBackground);
         }
         // Ad Events
         else

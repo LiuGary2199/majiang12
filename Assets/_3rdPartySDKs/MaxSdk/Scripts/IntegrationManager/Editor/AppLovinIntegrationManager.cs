@@ -8,7 +8,9 @@
 
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.Networking;
@@ -18,7 +20,6 @@ namespace AppLovinMax.Scripts.IntegrationManager.Editor
     [Serializable]
     public class PluginData
     {
-        // ReSharper disable InconsistentNaming - Consistent with JSON data.
         public Network AppLovinMax;
         public Network[] MediatedNetworks;
         public Network[] PartnerMicroSdks;
@@ -45,7 +46,6 @@ namespace AppLovinMax.Scripts.IntegrationManager.Editor
         // }
         //
 
-        // ReSharper disable InconsistentNaming - Consistent with JSON data.
         public string Name;
         public string DisplayName;
         public string DownloadUrl;
@@ -53,17 +53,15 @@ namespace AppLovinMax.Scripts.IntegrationManager.Editor
         public PackageInfo[] Packages;
         public string[] PluginFilePaths;
         public Versions LatestVersions;
-        public DynamicLibraryToEmbed[] DynamicLibrariesToEmbed;
-
         [NonSerialized] public Versions CurrentVersions;
         [NonSerialized] public MaxSdkUtils.VersionComparisonResult CurrentToLatestVersionComparisonResult = MaxSdkUtils.VersionComparisonResult.Lesser;
         [NonSerialized] public bool RequiresUpdate;
+        public DynamicLibraryToEmbed[] DynamicLibrariesToEmbed;
     }
 
     [Serializable]
     public class DynamicLibraryToEmbed
     {
-        // ReSharper disable InconsistentNaming - Consistent with JSON data.
         public string PodName;
         public string[] FrameworkNames;
 
@@ -86,7 +84,6 @@ namespace AppLovinMax.Scripts.IntegrationManager.Editor
     [Serializable]
     public class Versions
     {
-        // ReSharper disable InconsistentNaming - Consistent with JSON data.
         public string Unity;
         public string Android;
         public string Ios;
@@ -110,14 +107,12 @@ namespace AppLovinMax.Scripts.IntegrationManager.Editor
 
         public override int GetHashCode()
         {
-            return new {unity = Unity, android = Android, ios = Ios}.GetHashCode();
+            return new {Unity, Android, Ios}.GetHashCode();
         }
 
         private static string AdapterSdkVersion(string adapterVersion)
         {
-            if (string.IsNullOrEmpty(adapterVersion)) return "";
-
-            var index = adapterVersion.LastIndexOf(".", StringComparison.Ordinal);
+            var index = adapterVersion.LastIndexOf(".");
             return index > 0 ? adapterVersion.Substring(0, index) : adapterVersion;
         }
     }
@@ -145,14 +140,13 @@ namespace AppLovinMax.Scripts.IntegrationManager.Editor
 
         internal static readonly string GradleTemplatePath = Path.Combine("Assets/Plugins/Android", "mainTemplate.gradle");
         private const string MaxSdkAssetExportPath = "MaxSdk/Scripts/MaxSdk.cs";
-        private const string MaxSdkMediationExportPath = "MaxSdk/Mediation";
 
         private static readonly string PluginDataEndpoint = "https://unity.applovin.com/max/1.0/integration_manager_info?plugin_version={0}";
 
-        private static string _externalDependencyManagerVersion;
+        private static string externalDependencyManagerVersion;
 
-        public static DownloadPluginProgressCallback OnDownloadPluginProgressCallback;
-        public static ImportPackageCompletedCallback OnImportPackageCompletedCallback;
+        public static DownloadPluginProgressCallback downloadPluginProgressCallback;
+        public static ImportPackageCompletedCallback importPackageCompletedCallback;
 
         private UnityWebRequest webRequest;
         private Network importingNetwork;
@@ -179,15 +173,6 @@ namespace AppLovinMax.Scripts.IntegrationManager.Editor
                 // maxSdkScriptAssetPath will always have AltDirectorySeparatorChar (/) as the path separator. Convert to platform specific path.
                 return maxSdkScriptAssetPath.Replace(MaxSdkAssetExportPath, "")
                     .Replace(Path.AltDirectorySeparatorChar, Path.DirectorySeparatorChar);
-            }
-        }
-
-        public static string MediationDirectory
-        {
-            get
-            {
-                var mediationAssetPath = MaxSdkUtils.GetAssetPathForExportPath(MaxSdkMediationExportPath);
-                return mediationAssetPath.Replace(Path.AltDirectorySeparatorChar, Path.DirectorySeparatorChar);
             }
         }
 
@@ -230,21 +215,21 @@ namespace AppLovinMax.Scripts.IntegrationManager.Editor
         {
             get
             {
-                if (MaxSdkUtils.IsValidString(_externalDependencyManagerVersion)) return _externalDependencyManagerVersion;
+                if (!string.IsNullOrEmpty(externalDependencyManagerVersion)) return externalDependencyManagerVersion;
 
                 try
                 {
                     var versionHandlerVersionNumberType = Type.GetType("Google.VersionHandlerVersionNumber, Google.VersionHandlerImpl");
-                    _externalDependencyManagerVersion = versionHandlerVersionNumberType.GetProperty("Value").GetValue(null, null).ToString();
+                    externalDependencyManagerVersion = versionHandlerVersionNumberType.GetProperty("Value").GetValue(null, null).ToString();
                 }
 #pragma warning disable 0168
                 catch (Exception ignored)
 #pragma warning restore 0168
                 {
-                    _externalDependencyManagerVersion = "Failed to get version.";
+                    externalDependencyManagerVersion = "Failed to get version.";
                 }
 
-                return _externalDependencyManagerVersion;
+                return externalDependencyManagerVersion;
             }
         }
 
@@ -438,16 +423,16 @@ namespace AppLovinMax.Scripts.IntegrationManager.Editor
 
         private static void CallDownloadPluginProgressCallback(string pluginName, float progress, bool isDone)
         {
-            if (OnDownloadPluginProgressCallback == null) return;
+            if (downloadPluginProgressCallback == null) return;
 
-            OnDownloadPluginProgressCallback(pluginName, progress, isDone);
+            downloadPluginProgressCallback(pluginName, progress, isDone);
         }
 
         private static void CallImportPackageCompletedCallback(Network network)
         {
-            if (OnImportPackageCompletedCallback == null) return;
+            if (importPackageCompletedCallback == null) return;
 
-            OnImportPackageCompletedCallback(network);
+            importPackageCompletedCallback(network);
         }
 
         private static object GetEditorUserBuildSetting(string name, object defaultValue)

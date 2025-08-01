@@ -42,7 +42,7 @@ extern "C" {
 }
 #endif
 
-@interface MAUnityAdManager()<MAAdDelegate, MAAdViewAdDelegate, MARewardedAdDelegate, MAAdRevenueDelegate, MAAdReviewDelegate, MAAdExpirationDelegate>
+@interface MAUnityAdManager()<MAAdDelegate, MAAdViewAdDelegate, MARewardedAdDelegate, MAAdRevenueDelegate, MAAdReviewDelegate>
 
 // Parent Fields
 @property (nonatomic, weak) ALSdk *sdk;
@@ -51,6 +51,7 @@ extern "C" {
 @property (nonatomic, strong) NSMutableDictionary<NSString *, MAInterstitialAd *> *interstitials;
 @property (nonatomic, strong) NSMutableDictionary<NSString *, MAAppOpenAd *> *appOpenAds;
 @property (nonatomic, strong) NSMutableDictionary<NSString *, MARewardedAd *> *rewardedAds;
+@property (nonatomic, strong) NSMutableDictionary<NSString *, MARewardedInterstitialAd *> *rewardedInterstitialAds;
 
 // AdView Fields
 @property (nonatomic, strong) NSMutableDictionary<NSString *, MAAdView *> *adViews;
@@ -66,7 +67,6 @@ extern "C" {
 @property (nonatomic, strong) NSMutableArray<NSString *> *adUnitIdentifiersToShowAfterCreate;
 @property (nonatomic, strong) NSMutableSet<NSString *> *disabledAdaptiveBannerAdUnitIdentifiers;
 @property (nonatomic, strong) NSMutableSet<NSString *> *disabledAutoRefreshAdViewAdUnitIdentifiers;
-@property (nonatomic, strong) NSMutableSet<NSString *> *ignoreSafeAreaLandscapeAdUnitIdentifiers;
 @property (nonatomic, strong) UIView *safeAreaBackground;
 @property (nonatomic, strong, nullable) UIColor *publisherBannerBackgroundColor;
 
@@ -112,6 +112,7 @@ static ALUnityBackgroundCallback backgroundCallback;
         self.interstitials = [NSMutableDictionary dictionaryWithCapacity: 2];
         self.appOpenAds = [NSMutableDictionary dictionaryWithCapacity: 2];
         self.rewardedAds = [NSMutableDictionary dictionaryWithCapacity: 2];
+        self.rewardedInterstitialAds = [NSMutableDictionary dictionaryWithCapacity: 2];
         self.adViews = [NSMutableDictionary dictionaryWithCapacity: 2];
         self.adViewAdFormats = [NSMutableDictionary dictionaryWithCapacity: 2];
         self.adViewPositions = [NSMutableDictionary dictionaryWithCapacity: 2];
@@ -125,7 +126,6 @@ static ALUnityBackgroundCallback backgroundCallback;
         self.adUnitIdentifiersToShowAfterCreate = [NSMutableArray arrayWithCapacity: 2];
         self.disabledAdaptiveBannerAdUnitIdentifiers = [NSMutableSet setWithCapacity: 2];
         self.disabledAutoRefreshAdViewAdUnitIdentifiers = [NSMutableSet setWithCapacity: 2];
-        self.ignoreSafeAreaLandscapeAdUnitIdentifiers = [NSMutableSet setWithCapacity: 2];
         self.adInfoDict = [NSMutableDictionary dictionary];
         self.adInfoDictLock = [[NSObject alloc] init];
         
@@ -225,14 +225,14 @@ static ALUnityBackgroundCallback backgroundCallback;
 
 #pragma mark - Banners
 
-- (void)createBannerWithAdUnitIdentifier:(nullable NSString *)adUnitIdentifier atPosition:(nullable NSString *)bannerPosition isAdaptive:(BOOL)isAdaptive
+- (void)createBannerWithAdUnitIdentifier:(nullable NSString *)adUnitIdentifier atPosition:(nullable NSString *)bannerPosition
 {
-    [self createAdViewWithAdUnitIdentifier: adUnitIdentifier adFormat: [self adViewAdFormatForAdUnitIdentifier: adUnitIdentifier] atPosition: bannerPosition withOffset: CGPointZero isAdaptive: isAdaptive];
+    [self createAdViewWithAdUnitIdentifier: adUnitIdentifier adFormat: [self adViewAdFormatForAdUnitIdentifier: adUnitIdentifier] atPosition: bannerPosition withOffset: CGPointZero];
 }
 
-- (void)createBannerWithAdUnitIdentifier:(nullable NSString *)adUnitIdentifier x:(CGFloat)xOffset y:(CGFloat)yOffset isAdaptive:(BOOL)isAdaptive
+- (void)createBannerWithAdUnitIdentifier:(nullable NSString *)adUnitIdentifier x:(CGFloat)xOffset y:(CGFloat)yOffset
 {
-    [self createAdViewWithAdUnitIdentifier: adUnitIdentifier adFormat: [self adViewAdFormatForAdUnitIdentifier: adUnitIdentifier] atPosition: DEFAULT_AD_VIEW_POSITION withOffset: CGPointMake(xOffset, yOffset) isAdaptive: isAdaptive];
+    [self createAdViewWithAdUnitIdentifier: adUnitIdentifier adFormat: [self adViewAdFormatForAdUnitIdentifier: adUnitIdentifier] atPosition: DEFAULT_AD_VIEW_POSITION withOffset: CGPointMake(xOffset, yOffset)];
 }
 
 - (void)loadBannerWithAdUnitIdentifier:(nullable NSString *)adUnitIdentifier
@@ -325,12 +325,12 @@ static ALUnityBackgroundCallback backgroundCallback;
 
 - (void)createMRecWithAdUnitIdentifier:(nullable NSString *)adUnitIdentifier atPosition:(nullable NSString *)mrecPosition
 {
-    [self createAdViewWithAdUnitIdentifier: adUnitIdentifier adFormat: MAAdFormat.mrec atPosition: mrecPosition withOffset: CGPointZero isAdaptive: NO];
+    [self createAdViewWithAdUnitIdentifier: adUnitIdentifier adFormat: MAAdFormat.mrec atPosition: mrecPosition withOffset: CGPointZero];
 }
 
 - (void)createMRecWithAdUnitIdentifier:(nullable NSString *)adUnitIdentifier x:(CGFloat)xOffset y:(CGFloat)yOffset
 {
-    [self createAdViewWithAdUnitIdentifier: adUnitIdentifier adFormat: MAAdFormat.mrec atPosition: DEFAULT_AD_VIEW_POSITION withOffset: CGPointMake(xOffset, yOffset) isAdaptive: NO];
+    [self createAdViewWithAdUnitIdentifier: adUnitIdentifier adFormat: MAAdFormat.mrec atPosition: DEFAULT_AD_VIEW_POSITION withOffset: CGPointMake(xOffset, yOffset)];
 }
 
 - (void)loadMRecWithAdUnitIdentifier:(nullable NSString *)adUnitIdentifier
@@ -518,6 +518,44 @@ static ALUnityBackgroundCallback backgroundCallback;
     [rewardedAd setLocalExtraParameterForKey: key value: value];
 }
 
+#pragma mark - Rewarded Interstitials
+
+- (void)loadRewardedInterstitialAdWithAdUnitIdentifier:(nullable NSString *)adUnitIdentifier
+{
+    MARewardedInterstitialAd *rewardedInterstitialAd = [self retrieveRewardedInterstitialAdForAdUnitIdentifier: adUnitIdentifier];
+    [rewardedInterstitialAd loadAd];
+}
+
+- (BOOL)isRewardedInterstitialAdReadyWithAdUnitIdentifier:(nullable NSString *)adUnitIdentifier
+{
+    MARewardedInterstitialAd *rewardedInterstitialAd = [self retrieveRewardedInterstitialAdForAdUnitIdentifier: adUnitIdentifier];
+    return [rewardedInterstitialAd isReady];
+}
+
+- (void)showRewardedInterstitialAdWithAdUnitIdentifier:(nullable NSString *)adUnitIdentifier placement:(nullable NSString *)placement customData:(nullable NSString *)customData
+{
+    MARewardedInterstitialAd *rewardedInterstitialAd = [self retrieveRewardedInterstitialAdForAdUnitIdentifier: adUnitIdentifier];
+    [rewardedInterstitialAd showAdForPlacement: placement customData: customData];
+}
+
+- (void)setRewardedInterstitialAdExtraParameterForAdUnitIdentifier:(nullable NSString *)adUnitIdentifier key:(nullable NSString *)key value:(nullable NSString *)value
+{
+    MARewardedInterstitialAd *rewardedInterstitialAd = [self retrieveRewardedInterstitialAdForAdUnitIdentifier: adUnitIdentifier];
+    [rewardedInterstitialAd setExtraParameterForKey: key value: value];
+}
+
+- (void)setRewardedInterstitialAdLocalExtraParameterForAdUnitIdentifier:(nullable NSString *)adUnitIdentifier key:(nullable NSString *)key value:(nullable id)value
+{
+    if ( !key )
+    {
+        [self log: @"Failed to set local extra parameter: No key specified"];
+        return;
+    }
+    
+    MARewardedInterstitialAd *rewardedInterstitialAd = [self retrieveRewardedInterstitialAdForAdUnitIdentifier: adUnitIdentifier];
+    [rewardedInterstitialAd setLocalExtraParameterForKey: key value: value];
+}
+
 #pragma mark - Event Tracking
 
 - (void)trackEvent:(nullable NSString *)event parameters:(nullable NSString *)parameters
@@ -527,6 +565,16 @@ static ALUnityBackgroundCallback backgroundCallback;
 }
 
 #pragma mark - Ad Info
+
+- (NSString *)adInfoForAdUnitIdentifier:(nullable NSString *)adUnitIdentifier
+{
+    if ( ![adUnitIdentifier al_isValidString] ) return @"";
+    
+    MAAd *ad = [self adWithAdUnitIdentifier: adUnitIdentifier];
+    if ( !ad ) return @"";
+    
+    return [MAUnityAdManager serializeParameters: [self adInfoForAd: ad]];
+}
 
 - (NSDictionary<NSString *, id> *)adInfoForAd:(MAAd *)ad
 {
@@ -579,7 +627,6 @@ static ALUnityBackgroundCallback backgroundCallback;
         networkInfoObject[@"adapterClassName"] = response.mediatedNetwork.adapterClassName;
         networkInfoObject[@"adapterVersion"] = response.mediatedNetwork.adapterVersion;
         networkInfoObject[@"sdkVersion"] = response.mediatedNetwork.sdkVersion;
-        networkInfoObject[@"initializationStatus"] = @(response.mediatedNetwork.initializationStatus);
         
         networkResponseDict[@"mediatedNetwork"] = networkInfoObject;
     }
@@ -658,6 +705,10 @@ static ALUnityBackgroundCallback backgroundCallback;
     {
         name = @"OnRewardedAdLoadedEvent";
     }
+    else if ( MAAdFormat.rewardedInterstitial == adFormat )
+    {
+        name = @"OnRewardedInterstitialAdLoadedEvent";
+    }
     else
     {
         [self logInvalidAdFormat: adFormat];
@@ -711,6 +762,10 @@ static ALUnityBackgroundCallback backgroundCallback;
         {
             name = @"OnRewardedAdLoadFailedEvent";
         }
+        else if ( self.rewardedInterstitialAds[adUnitIdentifier] )
+        {
+            name = @"OnRewardedInterstitialAdLoadFailedEvent";
+        }
         else
         {
             [self log: @"invalid adUnitId from %@", [NSThread callStackSymbols]];
@@ -758,6 +813,10 @@ static ALUnityBackgroundCallback backgroundCallback;
         {
             name = @"OnRewardedAdClickedEvent";
         }
+        else if ( MAAdFormat.rewardedInterstitial == adFormat )
+        {
+            name = @"OnRewardedInterstitialAdClickedEvent";
+        }
         else
         {
             [self logInvalidAdFormat: adFormat];
@@ -791,9 +850,13 @@ static ALUnityBackgroundCallback backgroundCallback;
         {
             name = @"OnAppOpenAdDisplayedEvent";
         }
-        else // rewarded
+        else if ( MAAdFormat.rewarded == adFormat )
         {
             name = @"OnRewardedAdDisplayedEvent";
+        }
+        else // rewarded inters
+        {
+            name = @"OnRewardedInterstitialAdDisplayedEvent";
         }
         
         NSDictionary<NSString *, id> *args = [self defaultAdEventParametersForName: name withAd: ad];
@@ -818,9 +881,13 @@ static ALUnityBackgroundCallback backgroundCallback;
         {
             name = @"OnAppOpenAdFailedToDisplayEvent";
         }
-        else // rewarded
+        else if ( MAAdFormat.rewarded == adFormat )
         {
             name = @"OnRewardedAdFailedToDisplayEvent";
+        }
+        else // rewarded inters
+        {
+            name = @"OnRewardedInterstitialAdFailedToDisplayEvent";
         }
         
         NSMutableDictionary<NSString *, id> *args = [self defaultAdEventParametersForName: name withAd: ad];
@@ -865,9 +932,13 @@ static ALUnityBackgroundCallback backgroundCallback;
         {
             name = @"OnAppOpenAdHiddenEvent";
         }
-        else // rewarded
+        else if ( MAAdFormat.rewarded == adFormat )
         {
             name = @"OnRewardedAdHiddenEvent";
+        }
+        else // rewarded inters
+        {
+            name = @"OnRewardedInterstitialAdHiddenEvent";
         }
         
         NSDictionary<NSString *, id> *args = [self defaultAdEventParametersForName: name withAd: ad];
@@ -951,7 +1022,7 @@ static ALUnityBackgroundCallback backgroundCallback;
     dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
         
         MAAdFormat *adFormat = ad.format;
-        if ( adFormat != MAAdFormat.rewarded )
+        if ( adFormat != MAAdFormat.rewarded && adFormat != MAAdFormat.rewardedInterstitial )
         {
             [self logInvalidAdFormat: adFormat];
             return;
@@ -960,8 +1031,10 @@ static ALUnityBackgroundCallback backgroundCallback;
         NSString *rewardLabel = reward ? reward.label : @"";
         NSInteger rewardAmountInt = reward ? reward.amount : 0;
         NSString *rewardAmount = [@(rewardAmountInt) stringValue];
-        NSString *name = @"OnRewardedAdReceivedRewardEvent";
-                
+        
+        NSString *name = (adFormat == MAAdFormat.rewarded) ? @"OnRewardedAdReceivedRewardEvent" : @"OnRewardedInterstitialAdReceivedRewardEvent";
+        
+        
         NSMutableDictionary<NSString *, id> *args = [self defaultAdEventParametersForName: name withAd: ad];
         args[@"rewardLabel"] = rewardLabel;
         args[@"rewardAmount"] = rewardAmount;
@@ -995,6 +1068,10 @@ static ALUnityBackgroundCallback backgroundCallback;
         {
             name = @"OnRewardedAdRevenuePaidEvent";
         }
+        else if ( MAAdFormat.rewardedInterstitial == adFormat )
+        {
+            name = @"OnRewardedInterstitialAdRevenuePaidEvent";
+        }
         else
         {
             [self logInvalidAdFormat: adFormat];
@@ -1003,43 +1080,6 @@ static ALUnityBackgroundCallback backgroundCallback;
         
         NSMutableDictionary<NSString *, id> *args = [self defaultAdEventParametersForName: name withAd: ad];
         args[@"keepInBackground"] = @([adFormat isFullscreenAd]);
-        [self forwardUnityEventWithArgs: args];
-    });
-}
-
-- (void)didReloadExpiredAd:(MAAd *)expiredAd withNewAd:(MAAd *)newAd;
-{
-    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
-        
-        NSString *name;
-        MAAdFormat *adFormat = newAd.format;
-        if ( MAAdFormat.interstitial == adFormat )
-        {
-            name = @"OnExpiredInterstitialAdReloadedEvent";
-        }
-        else if ( MAAdFormat.appOpen == adFormat )
-        {
-            name = @"OnExpiredAppOpenAdReloadedEvent";
-        }
-        else if ( MAAdFormat.rewarded == adFormat )
-        {
-            name = @"OnExpiredRewardedAdReloadedEvent ";
-        }
-        else
-        {
-            [self logInvalidAdFormat: adFormat];
-            return;
-        }
-    
-        @synchronized ( self.adInfoDictLock )
-        {
-            self.adInfoDict[newAd.adUnitIdentifier] = newAd;
-        }
-        
-        NSMutableDictionary<NSString *, NSObject *> *args = [NSMutableDictionary dictionary];
-        args[@"expiredAdInfo"] = [self adInfoForAd: expiredAd];
-        args[@"newAdInfo"] = [self adInfoForAd: newAd];
-        args[@"name"] = name;
         [self forwardUnityEventWithArgs: args];
     });
 }
@@ -1066,6 +1106,10 @@ static ALUnityBackgroundCallback backgroundCallback;
         {
             name = @"OnRewardedAdReviewCreativeIdGeneratedEvent";
         }
+        else if ( MAAdFormat.rewardedInterstitial == adFormat )
+        {
+            name = @"OnRewardedInterstitialAdReviewCreativeIdGeneratedEvent";
+        }
         else
         {
             [self logInvalidAdFormat: adFormat];
@@ -1091,7 +1135,7 @@ static ALUnityBackgroundCallback backgroundCallback;
 
 #pragma mark - Internal Methods
 
-- (void)createAdViewWithAdUnitIdentifier:(NSString *)adUnitIdentifier adFormat:(MAAdFormat *)adFormat atPosition:(NSString *)adViewPosition withOffset:(CGPoint)offset isAdaptive:(BOOL)isAdaptive
+- (void)createAdViewWithAdUnitIdentifier:(NSString *)adUnitIdentifier adFormat:(MAAdFormat *)adFormat atPosition:(NSString *)adViewPosition withOffset:(CGPoint)offset
 {
     max_unity_dispatch_on_main_thread(^{
         [self log: @"Creating %@ with ad unit identifier \"%@\" and position: \"%@\"", adFormat, adUnitIdentifier, adViewPosition];
@@ -1102,7 +1146,7 @@ static ALUnityBackgroundCallback backgroundCallback;
         }
         
         // Retrieve ad view from the map
-        MAAdView *adView = [self retrieveAdViewForAdUnitIdentifier: adUnitIdentifier adFormat: adFormat atPosition: adViewPosition withOffset: offset isAdaptive: isAdaptive];
+        MAAdView *adView = [self retrieveAdViewForAdUnitIdentifier: adUnitIdentifier adFormat: adFormat atPosition: adViewPosition withOffset: offset];
         adView.hidden = YES;
         self.safeAreaBackground.hidden = YES;
         
@@ -1111,6 +1155,16 @@ static ALUnityBackgroundCallback backgroundCallback;
         [self positionAdViewForAdUnitIdentifier: adUnitIdentifier adFormat: adFormat];
         
         NSDictionary<NSString *, NSString *> *extraParameters = self.adViewExtraParametersToSetAfterCreate[adUnitIdentifier];
+        
+        // Enable adaptive banners by default for banners and leaders.
+        if ( [adFormat isBannerOrLeaderAd] )
+        {
+            // Check if there is already a pending setting for adaptive banners. If not, enable them.
+            if ( !extraParameters[@"adaptive_banner"] )
+            {
+                [adView setExtraParameterForKey: @"adaptive_banner" value: @"true"];
+            }
+        }
         
         // Handle initial extra parameters if publisher sets it before creating ad view
         if ( extraParameters )
@@ -1378,8 +1432,6 @@ static ALUnityBackgroundCallback backgroundCallback;
         }
         else if ( [@"adaptive_banner" isEqualToString: key] )
         {
-            [self log: @"Setting adaptive banners via extra parameters is deprecated and will be removed in a future plugin version. Use the CreateBanner(adUnitIdentifier, AdViewConfiguration) API to properly configure adaptive banners."];
-
             BOOL shouldUseAdaptiveBanner = [NSNumber al_numberWithString: value].boolValue;
             if ( shouldUseAdaptiveBanner )
             {
@@ -1392,18 +1444,6 @@ static ALUnityBackgroundCallback backgroundCallback;
             
             [self positionAdViewForAdUnitIdentifier: adUnitIdentifier adFormat: adFormat];
         }
-        else if ( [@"ignore_safe_area_landscape" isEqualToString: key] && [NSNumber al_numberWithString: value].boolValue )
-        {
-            [self.ignoreSafeAreaLandscapeAdUnitIdentifiers addObject: adUnitIdentifier];
-            [self positionAdViewForAdUnitIdentifier: adUnitIdentifier adFormat: adFormat];
-        }
-    }
-    
-    if ( [adFormat isAdViewAd] && [@"clips_to_bounds" isEqualToString: key] )
-    {
-        BOOL clipsToBounds = [NSNumber al_numberWithString: value].boolValue;
-        MAAdView *view = [self retrieveAdViewForAdUnitIdentifier: adUnitIdentifier adFormat: adFormat];
-        view.clipsToBounds = clipsToBounds;
     }
 }
 
@@ -1533,11 +1573,10 @@ static ALUnityBackgroundCallback backgroundCallback;
     MAInterstitialAd *result = self.interstitials[adUnitIdentifier];
     if ( !result )
     {
-        result = [[MAInterstitialAd alloc] initWithAdUnitIdentifier: adUnitIdentifier];
+        result = [[MAInterstitialAd alloc] initWithAdUnitIdentifier: adUnitIdentifier sdk: self.sdk];
         result.delegate = self;
         result.revenueDelegate = self;
         result.adReviewDelegate = self;
-        result.expirationDelegate = self;
         
         self.interstitials[adUnitIdentifier] = result;
     }
@@ -1550,10 +1589,9 @@ static ALUnityBackgroundCallback backgroundCallback;
     MAAppOpenAd *result = self.appOpenAds[adUnitIdentifier];
     if ( !result )
     {
-        result = [[MAAppOpenAd alloc] initWithAdUnitIdentifier: adUnitIdentifier];
+        result = [[MAAppOpenAd alloc] initWithAdUnitIdentifier: adUnitIdentifier sdk: self.sdk];
         result.delegate = self;
         result.revenueDelegate = self;
-        result.expirationDelegate = self;
         
         self.appOpenAds[adUnitIdentifier] = result;
     }
@@ -1566,11 +1604,10 @@ static ALUnityBackgroundCallback backgroundCallback;
     MARewardedAd *result = self.rewardedAds[adUnitIdentifier];
     if ( !result )
     {
-        result = [MARewardedAd sharedWithAdUnitIdentifier: adUnitIdentifier];
+        result = [MARewardedAd sharedWithAdUnitIdentifier: adUnitIdentifier sdk: self.sdk];
         result.delegate = self;
         result.revenueDelegate = self;
         result.adReviewDelegate = self;
-        result.expirationDelegate = self;
         
         self.rewardedAds[adUnitIdentifier] = result;
     }
@@ -1578,35 +1615,34 @@ static ALUnityBackgroundCallback backgroundCallback;
     return result;
 }
 
-- (MAAdView *)retrieveAdViewForAdUnitIdentifier:(NSString *)adUnitIdentifier adFormat:(MAAdFormat *)adFormat
+- (MARewardedInterstitialAd *)retrieveRewardedInterstitialAdForAdUnitIdentifier:(NSString *)adUnitIdentifier
 {
-    return [self retrieveAdViewForAdUnitIdentifier: adUnitIdentifier adFormat: adFormat atPosition: nil withOffset: CGPointZero isAdaptive: YES];
+    MARewardedInterstitialAd *result = self.rewardedInterstitialAds[adUnitIdentifier];
+    if ( !result )
+    {
+        result = [[MARewardedInterstitialAd alloc] initWithAdUnitIdentifier: adUnitIdentifier sdk: self.sdk];
+        result.delegate = self;
+        result.revenueDelegate = self;
+        result.adReviewDelegate = self;
+        
+        self.rewardedInterstitialAds[adUnitIdentifier] = result;
+    }
+    
+    return result;
 }
 
-- (MAAdView *)retrieveAdViewForAdUnitIdentifier:(NSString *)adUnitIdentifier adFormat:(MAAdFormat *)adFormat atPosition:(NSString *)adViewPosition withOffset:(CGPoint)offset isAdaptive:(BOOL)isAdaptive
+- (MAAdView *)retrieveAdViewForAdUnitIdentifier:(NSString *)adUnitIdentifier adFormat:(MAAdFormat *)adFormat
+{
+    return [self retrieveAdViewForAdUnitIdentifier: adUnitIdentifier adFormat: adFormat atPosition: nil withOffset: CGPointZero];
+}
+
+- (MAAdView *)retrieveAdViewForAdUnitIdentifier:(NSString *)adUnitIdentifier adFormat:(MAAdFormat *)adFormat atPosition:(NSString *)adViewPosition withOffset:(CGPoint)offset
 {
     MAAdView *result = self.adViews[adUnitIdentifier];
     if ( !result && adViewPosition )
-    {        
-        MAAdViewConfiguration *config = [MAAdViewConfiguration configurationWithBuilderBlock:^(MAAdViewConfigurationBuilder *builder) {
-            
-            // Set adaptive type only for banner ads. If adaptive is enabled, use ANCHORED; otherwise, fall back to NONE.
-            if ( [adFormat isBannerOrLeaderAd] )
-            {
-                if ( isAdaptive )
-                {
-                    builder.adaptiveType = MAAdViewAdaptiveTypeAnchored;
-                }
-                else
-                {
-                    builder.adaptiveType = MAAdViewAdaptiveTypeNone;
-                    [self.disabledAdaptiveBannerAdUnitIdentifiers addObject:adUnitIdentifier];
-                }
-            }
-        }];
-        
+    {
+        result = [[MAAdView alloc] initWithAdUnitIdentifier: adUnitIdentifier adFormat: adFormat sdk: self.sdk];
         // There is a Unity bug where if an empty UIView is on screen with user interaction enabled, and a user interacts with it, it just passes the events to random parts of the screen.
-        result = [[MAAdView alloc] initWithAdUnitIdentifier:adUnitIdentifier adFormat:adFormat configuration:config];
         result.userInteractionEnabled = NO;
         result.translatesAutoresizingMaskIntoConstraints = NO;
         result.delegate = self;
@@ -1703,8 +1739,6 @@ static ALUnityBackgroundCallback backgroundCallback;
         NSMutableArray<NSLayoutConstraint *> *constraints = [NSMutableArray arrayWithObject: [adView.heightAnchor constraintEqualToConstant: adViewSize.height]];
         
         UILayoutGuide *layoutGuide = superview.safeAreaLayoutGuide;
-        BOOL shouldIgnoreSafeArea = [self shouldIgnoreSafeAreaForAdUnitIdentifier: adUnitIdentifier];
-        NSLayoutAnchor *topAnchor = shouldIgnoreSafeArea ? superview.topAnchor : layoutGuide.topAnchor;
         
         if ( [adViewPosition isEqual: @"top_center"] || [adViewPosition isEqual: @"bottom_center"] )
         {
@@ -1735,7 +1769,7 @@ static ALUnityBackgroundCallback backgroundCallback;
                     
                     if ( [adViewPosition isEqual: @"top_center"] )
                     {
-                        [constraints addObjectsFromArray: @[[adView.topAnchor constraintEqualToAnchor: topAnchor],
+                        [constraints addObjectsFromArray: @[[adView.topAnchor constraintEqualToAnchor: layoutGuide.topAnchor],
                                                             [self.safeAreaBackground.topAnchor constraintEqualToAnchor: superview.topAnchor],
                                                             [self.safeAreaBackground.bottomAnchor constraintEqualToAnchor: adView.topAnchor]]];
                     }
@@ -1755,7 +1789,7 @@ static ALUnityBackgroundCallback backgroundCallback;
                     
                     if ( [adViewPosition isEqual: @"top_center"] )
                     {
-                        [constraints addObjectsFromArray: @[[adView.topAnchor constraintEqualToAnchor: topAnchor],
+                        [constraints addObjectsFromArray: @[[adView.topAnchor constraintEqualToAnchor: layoutGuide.topAnchor],
                                                             [self.safeAreaBackground.topAnchor constraintEqualToAnchor: superview.topAnchor],
                                                             [self.safeAreaBackground.bottomAnchor constraintEqualToAnchor: adView.topAnchor]]];
                     }
@@ -1777,7 +1811,7 @@ static ALUnityBackgroundCallback backgroundCallback;
                 
                 if ( [adViewPosition isEqual: @"top_center"] )
                 {
-                    [constraints addObject: [adView.topAnchor constraintEqualToAnchor: topAnchor]];
+                    [constraints addObject: [adView.topAnchor constraintEqualToAnchor: layoutGuide.topAnchor]];
                 }
                 else // BottomCenter
                 {
@@ -1894,11 +1928,11 @@ static ALUnityBackgroundCallback backgroundCallback;
             if ( [adViewPosition isEqual: @"top_left"] )
             {
                 [constraints addObjectsFromArray: @[[adView.leftAnchor constraintEqualToAnchor: superview.leftAnchor constant: adViewOffset.x],
-                                                    [adView.topAnchor constraintEqualToAnchor: topAnchor constant: adViewOffset.y]]];
+                                                    [adView.topAnchor constraintEqualToAnchor: layoutGuide.topAnchor constant: adViewOffset.y]]];
             }
             else if ( [adViewPosition isEqual: @"top_right"] )
             {
-                [constraints addObjectsFromArray: @[[adView.topAnchor constraintEqualToAnchor: topAnchor],
+                [constraints addObjectsFromArray: @[[adView.topAnchor constraintEqualToAnchor: layoutGuide.topAnchor],
                                                     [adView.rightAnchor constraintEqualToAnchor: superview.rightAnchor]]];
             }
             else if ( [adViewPosition isEqual: @"centered"] )
@@ -2051,17 +2085,6 @@ static ALUnityBackgroundCallback backgroundCallback;
     {
         return self.adInfoDict[adUnitIdentifier];
     }
-}
-
-#pragma mark - Helper
-
-- (BOOL)shouldIgnoreSafeAreaForAdUnitIdentifier:(NSString *)adUnitIdentifier
-{
-    if ( ![self.ignoreSafeAreaLandscapeAdUnitIdentifiers containsObject: adUnitIdentifier] ) return NO;
-    
-    // We should use the superview instead of layout guide if the application's orientation is landscape and the extra parameter is set
-    UIInterfaceOrientation orientation = [UIApplication sharedApplication].statusBarOrientation;
-    return orientation == UIInterfaceOrientationLandscapeRight || orientation == UIInterfaceOrientationLandscapeLeft;
 }
 
 @end

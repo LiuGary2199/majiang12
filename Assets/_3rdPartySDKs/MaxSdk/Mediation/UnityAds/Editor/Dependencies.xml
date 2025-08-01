@@ -4,6 +4,6 @@
         <androidPackage spec="com.applovin.mediation:unityads-adapter:4.16.0.0" />
     </androidPackages>
     <iosPods>
-        <iosPod name="AppLovinMediationUnityAdsAdapter" version="4.15.1.1" />
+        <iosPod name="AppLovinMediationUnityAdsAdapter" version="4.16.0.0" />
     </iosPods>
 </dependencies>
