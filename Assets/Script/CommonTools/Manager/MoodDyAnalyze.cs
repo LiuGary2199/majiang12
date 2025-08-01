@@ -4,7 +4,7 @@ using UnityEngine;
 public class MoodDyAnalyze : MonoBehaviour
 {
     public static MoodDyAnalyze instance;
-[UnityEngine.Serialization.FormerlySerializedAs("appid")]
+    [UnityEngine.Serialization.FormerlySerializedAs("appid")]
     public string There;
     //获取IOS函数声明
 #if UNITY_IOS
@@ -22,7 +22,7 @@ public class MoodDyAnalyze : MonoBehaviour
 #if UNITY_ANDROID || UNITY_EDITOR
         Application.OpenURL("market://details?id=" + There);
 #elif UNITY_IOS
-        openRateUsUrl(appid);
+        openRateUsUrl(There);
 #endif
     }
 }
