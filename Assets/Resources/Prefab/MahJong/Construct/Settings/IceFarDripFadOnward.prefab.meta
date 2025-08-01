@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 72d66fbfc7731ac4ba81938a36f46c95
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 100100000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 307235
+  packageName: MK - Grand Mahjong Game
+  packageVersion: 1.0
+  assetPath: Assets/Mahjong/Prefabs/Construct/Settings/IncDecGridSetPrefab.prefab
+  uploadId: 722904

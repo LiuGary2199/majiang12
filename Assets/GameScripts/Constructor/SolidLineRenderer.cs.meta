@@ -1,0 +1,9 @@
+fileFormatVersion: 2
+guid: cc9644ad126379741955c94b7e4685d9
+AssetOrigin:
+  serializedVersion: 1
+  productId: 307235
+  packageName: MK - Grand Mahjong Game
+  packageVersion: 1.0
+  assetPath: Assets/Mahjong/Scripts/GameScripts/Constructor/SolidLineRenderer.cs
+  uploadId: 722904

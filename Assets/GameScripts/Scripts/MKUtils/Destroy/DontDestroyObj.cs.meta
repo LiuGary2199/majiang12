@@ -1,0 +1,19 @@
+fileFormatVersion: 2
+guid: 9c560ffcc01248848a567b5a4bbe1416
+timeCreated: 1488558645
+licenseType: Store
+MonoImporter:
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 307235
+  packageName: MK - Grand Mahjong Game
+  packageVersion: 1.0
+  assetPath: Assets/Mahjong/Scripts/MKUtils/Destroy/DontDestroyObj.cs
+  uploadId: 722904

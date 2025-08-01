@@ -1,0 +1,9 @@
+fileFormatVersion: 2
+guid: f2aceb193cdf38c4c995b84c1d88b90f
+AssetOrigin:
+  serializedVersion: 1
+  productId: 307235
+  packageName: MK - Grand Mahjong Game
+  packageVersion: 1.0
+  assetPath: Assets/Mahjong/Scripts/MKMatchUtils/NextLevelButton.cs
+  uploadId: 722904

@@ -1,0 +1,41 @@
+
+Chose_1.png
+size: 735,192
+format: RGBA8888
+filter: Linear,Linear
+repeat: none
+Glow_1
+  rotate: true
+  xy: 633, 94
+  size: 96, 97
+  orig: 116, 115
+  offset: 10, 9
+  index: -1
+Light_1
+  rotate: false
+  xy: 467, 11
+  size: 164, 179
+  orig: 166, 191
+  offset: 1, 1
+  index: -1
+Light_2
+  rotate: true
+  xy: 246, 26
+  size: 164, 219
+  orig: 166, 221
+  offset: 1, 1
+  index: -1
+Light_ring_1
+  rotate: true
+  xy: 2, 2
+  size: 188, 242
+  orig: 190, 244
+  offset: 1, 1
+  index: -1
+Spark
+  rotate: true
+  xy: 633, 11
+  size: 81, 100
+  orig: 86, 106
+  offset: 3, 3
+  index: -1

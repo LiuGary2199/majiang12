@@ -1,0 +1,9 @@
+fileFormatVersion: 2
+guid: 5618e9dcbd5360b4a80a43eb12403639
+AssetOrigin:
+  serializedVersion: 1
+  productId: 307235
+  packageName: MK - Grand Mahjong Game
+  packageVersion: 1.0
+  assetPath: Assets/Mahjong/Scripts/MKMatchUtils/ResetGame.cs
+  uploadId: 722904

@@ -1,0 +1,16 @@
+fileFormatVersion: 2
+guid: 021bbc0b9d5ee9049ad222235dbd07ab
+timeCreated: 1493735367
+licenseType: Store
+NativeFormatImporter:
+  mainObjectFileID: 100100000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 307235
+  packageName: MK - Grand Mahjong Game
+  packageVersion: 1.0
+  assetPath: Assets/Mahjong/Prefabs/PopUps/GetFreeHint.prefab
+  uploadId: 722904

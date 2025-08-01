@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: d023451e26e94c64e93dd484e0d31dbc
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 11400000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 307235
+  packageName: MK - Grand Mahjong Game
+  packageVersion: 1.0
+  assetPath: Assets/Mahjong/Resources/LevelConstructSets/51_60/Level_056.asset
+  uploadId: 722904

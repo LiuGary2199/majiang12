@@ -1,0 +1,18 @@
+fileFormatVersion: 2
+guid: 047f4d2eb7fcaa14d913c162a292396f
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 307235
+  packageName: MK - Grand Mahjong Game
+  packageVersion: 1.0
+  assetPath: Assets/Mahjong/Scripts/GUI/PopUps/Achievements_Rewards/AchievementsPU.cs
+  uploadId: 722904

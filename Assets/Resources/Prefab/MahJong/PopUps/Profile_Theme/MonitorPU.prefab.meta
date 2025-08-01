@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: 85e0e0e5a479a49479d770abccb5e1ef
+PrefabImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 307235
+  packageName: MK - Grand Mahjong Game
+  packageVersion: 1.0
+  assetPath: Assets/Mahjong/Prefabs/PopUps/Profile_Theme/ProfilePU.prefab
+  uploadId: 722904

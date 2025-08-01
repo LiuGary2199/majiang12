@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: b3da795ea05f99e48b75f66c844965e4
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 11400000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 307235
+  packageName: MK - Grand Mahjong Game
+  packageVersion: 1.0
+  assetPath: Assets/Mahjong/Resources/GameObjectSets/Theme/Themes/SimpleTheme_Sprites.asset
+  uploadId: 722904

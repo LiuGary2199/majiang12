@@ -1,0 +1,61 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1c3f22763f55f944783c234b0b8b28f7, type: 3}
+  m_Name: Old1Theme_Sprites
+  m_EditorClassIdentifier: 
+  simpleSprites:
+  - {fileID: 21300000, guid: 743ecc9f8162d6d498fc5e4ba70100d1, type: 3}
+  - {fileID: 21300000, guid: f643272a64e74844bb670df2dfef1c54, type: 3}
+  - {fileID: 21300000, guid: 60abb24e06cd1604593b33c82e433dbb, type: 3}
+  - {fileID: 21300000, guid: ca46c0f8d2712014a9fcdef925726604, type: 3}
+  - {fileID: 21300000, guid: 4d44014b337b4bf438d59bbb20508a04, type: 3}
+  - {fileID: 21300000, guid: 9879c6b211fa2904d929b447caa8889d, type: 3}
+  - {fileID: 21300000, guid: 332bbd7b3992d974cb6c9702244607cb, type: 3}
+  - {fileID: 21300000, guid: a11d8d073f2442d40b31b405e4d07cce, type: 3}
+  - {fileID: 21300000, guid: e051549e490551948b7e371590ac977d, type: 3}
+  - {fileID: 21300000, guid: e9643e2a1d75d0942900445003b6f8c8, type: 3}
+  - {fileID: 21300000, guid: f1411e631d908cd4fb31283c60ee1485, type: 3}
+  - {fileID: 21300000, guid: c3ced215c43cd3249ad9171f8dd9f132, type: 3}
+  - {fileID: 21300000, guid: ef37c232d22f0504ca5668bfc8c03d69, type: 3}
+  - {fileID: 21300000, guid: 9437f4aa86040704a86016c977c69345, type: 3}
+  - {fileID: 21300000, guid: bddd387bd658c294b85d7b9eebe948ef, type: 3}
+  - {fileID: 21300000, guid: d628c764733f0af4a816f43740d77390, type: 3}
+  - {fileID: 21300000, guid: 532d91295d43fbd4889e8f154ef34106, type: 3}
+  - {fileID: 21300000, guid: 57d5055ccb936fa49a17f85cb5543fe2, type: 3}
+  - {fileID: 21300000, guid: 4028a26244f91ad4b9fc0da879478b70, type: 3}
+  - {fileID: 21300000, guid: 274c57d8f99ee934e9036b4b01c60f67, type: 3}
+  - {fileID: 21300000, guid: fdac7fd96c2dfb34399319acd198729f, type: 3}
+  - {fileID: 21300000, guid: 2f3280931079e6f4d999d34f86f4947d, type: 3}
+  - {fileID: 21300000, guid: 8440697d2986a6d47aefaae9636c4926, type: 3}
+  - {fileID: 21300000, guid: cf6db4eb9160ca74ca7fd63a66238a42, type: 3}
+  - {fileID: 21300000, guid: e47446bdc99c6174eb08bf87fa9d83cb, type: 3}
+  - {fileID: 21300000, guid: 03b9905af737e0e4f8767618b1bcc5f3, type: 3}
+  - {fileID: 21300000, guid: 633d7a919f261b948807b6daf9ba3013, type: 3}
+  - {fileID: 21300000, guid: cad00106f7154a14fb788d64cca427be, type: 3}
+  - {fileID: 21300000, guid: 15d28caa7dd432146969791ea3d776fb, type: 3}
+  - {fileID: 21300000, guid: c9ee51f559012c540b5d1e2fa4071417, type: 3}
+  - {fileID: 21300000, guid: 75652edd414183f45a783b933e8ef29c, type: 3}
+  - {fileID: 21300000, guid: b1ad5d77bfbdffe4ebd9dbc47d380703, type: 3}
+  - {fileID: 21300000, guid: ef5393818a5545249960530dbd5c4b94, type: 3}
+  - {fileID: 21300000, guid: aadba0e3277a8b146af357b43034fe35, type: 3}
+  groups:
+  - collection:
+    - {fileID: 21300000, guid: 2a7ab40f8d66bd24cafc0b8eebd94d25, type: 3}
+    - {fileID: 21300000, guid: 716c946c7de774f438ca44ae63de83e1, type: 3}
+    - {fileID: 21300000, guid: dba61d256e703fc4d95632a8de780a61, type: 3}
+    - {fileID: 21300000, guid: 0b08c9e97ac424649b822f667f89ee12, type: 3}
+  - collection:
+    - {fileID: 21300000, guid: fac5390a1876fb741826f0b6ceb5e816, type: 3}
+    - {fileID: 21300000, guid: 642b22cbf09a7cb4c80e7c80d5f382ab, type: 3}
+    - {fileID: 21300000, guid: 358efe61ab1730945b3fe3708e19c241, type: 3}
+    - {fileID: 21300000, guid: 298110e0171eaf34b87bb51f6a82e732, type: 3}
+  themeName: Old1

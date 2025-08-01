@@ -1,0 +1,18 @@
+fileFormatVersion: 2
+guid: 8e4fd0fb6b7d5d64e8d7fd54e52e5746
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 307235
+  packageName: MK - Grand Mahjong Game
+  packageVersion: 1.0
+  assetPath: Assets/Mahjong/Scripts/Holders/ShuffleHolder.cs
+  uploadId: 722904

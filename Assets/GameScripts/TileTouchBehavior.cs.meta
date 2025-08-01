@@ -1,0 +1,9 @@
+fileFormatVersion: 2
+guid: 215fb79d9e621b949a9f08b318a7fc49
+AssetOrigin:
+  serializedVersion: 1
+  productId: 307235
+  packageName: MK - Grand Mahjong Game
+  packageVersion: 1.0
+  assetPath: Assets/Mahjong/Scripts/GameScripts/TileTouchBehavior.cs
+  uploadId: 722904

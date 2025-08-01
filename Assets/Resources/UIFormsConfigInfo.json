@@ -1,0 +1,79 @@
+{
+  "ConfigInfo": [
+    {
+      "Key": "本配置文件说明"
+    },
+    {
+      "Key": "DireStore",
+      "Value": "UIPanel\\DireStore"
+    },
+    {
+      "Key": "IngoingStore",
+      "Value": "UIPanel\\IngoingStore"
+    },
+    {
+      "Key": "Ought",
+      "Value": "UIPanel\\Common\\Ought"
+    },
+    {
+      "Key": "CollectEffect",
+      "Value": "UIPanel\\Common\\CollectEffect"
+    },
+    {
+      "Key": "TenthTimidityStore",
+      "Value": "UIPanel\\TenthTimidityStore"
+    },
+    {
+        "Key": "CashOutPanel",
+        "Value": "UIPanel\\CashOutPanel"
+    },
+    {
+      "Key": "MoodDyStore",
+      "Value": "UIPanel\\MoodDyStore"
+    },
+    {
+      "Key": "DailyGiftPanel",
+      "Value": "UIPanel\\DailyGift\\DailyGiftPanel"
+    },
+    {
+      "Key": "RemoveAdPanel",
+      "Value": "UIPanel\\RemoveAd\\RemoveAdPanel"
+    },
+    {
+      "Key": "EndlessTreasurePanel",
+      "Value": "UIPanel\\EndlessTreasure\\EndlessTreasurePanel"
+    },
+    {
+      "Key": "RankStarPanel",
+      "Value": "UIPanel\\RankStar\\RankStarPanel"
+    },
+    {
+      "Key": "RewardPanel",
+      "Value": "UIPanel\\RewardPanel\\RewardPanel"
+    },
+    {
+      "Key": "FoxTiltFlintStore",
+      "Value": "UIPanel\\FoxTiltFlintStore"
+    },
+    {
+      "Key": "AdManagerTestPanel",
+      "Value": "UIPanel\\Test\\AdManagerTestPanel"
+    },
+    {
+      "Key": "ClientGild",
+      "Value": "UIPanel\\ClientGild"
+    },
+    {
+      "Key": "RadiumLysStore",
+      "Value": "UIPanel\\RadiumLysStore"
+    },
+    {
+      "Key": "RichRadium",
+      "Value": "UIPanel\\RichRadium"
+    },
+    {
+      "Key": "BegBound",
+      "Value": "UIPanel\\BegBound"
+    }
+  ]
+}

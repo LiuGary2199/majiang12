@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: 6ddbfdc1e79dab443afdf2f90938086c
+PrefabImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 307235
+  packageName: MK - Grand Mahjong Game
+  packageVersion: 1.0
+  assetPath: Assets/Mahjong/Prefabs/Construct/SolidLineRenderer.prefab
+  uploadId: 722904

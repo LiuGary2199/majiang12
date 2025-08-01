@@ -1,0 +1,19 @@
+fileFormatVersion: 2
+guid: 6d356199babc7c148a645c150bf5532e
+timeCreated: 1492156568
+licenseType: Store
+MonoImporter:
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 400
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 307235
+  packageName: MK - Grand Mahjong Game
+  packageVersion: 1.0
+  assetPath: Assets/Mahjong/Scripts/GUI/FooterGUIController.cs
+  uploadId: 722904

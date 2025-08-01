@@ -1,0 +1,27 @@
+
+guang_guangzhu.png
+size: 364,132
+format: RGBA8888
+filter: Linear,Linear
+repeat: none
+guangzhu
+  rotate: true
+  xy: 2, 2
+  size: 114, 215
+  orig: 140, 224
+  offset: 12, 3
+  index: -1
+guangzhu02
+  rotate: true
+  xy: 2, 118
+  size: 11, 360
+  orig: 30, 400
+  offset: 10, 20
+  index: -1
+lrj_10113_tex_09
+  rotate: false
+  xy: 219, 32
+  size: 94, 84
+  orig: 128, 128
+  offset: 14, 22
+  index: -1

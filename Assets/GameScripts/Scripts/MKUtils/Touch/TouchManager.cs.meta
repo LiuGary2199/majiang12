@@ -1,0 +1,19 @@
+fileFormatVersion: 2
+guid: 680dee6179ec1b34e92498b6ab4d12ba
+timeCreated: 1490256105
+licenseType: Store
+MonoImporter:
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 200
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 307235
+  packageName: MK - Grand Mahjong Game
+  packageVersion: 1.0
+  assetPath: Assets/Mahjong/Scripts/MKUtils/Touch/TouchManager.cs
+  uploadId: 722904

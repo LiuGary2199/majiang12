@@ -1,0 +1,20 @@
+
+StartSettingBtn.png
+size: 712,156
+format: RGBA8888
+filter: Linear,Linear
+repeat: none
+s1
+  rotate: true
+  xy: 2, 2
+  size: 150, 624
+  orig: 150, 624
+  offset: 0, 0
+  index: -1
+s2
+  rotate: false
+  xy: 628, 70
+  size: 82, 82
+  orig: 84, 84
+  offset: 1, 1
+  index: -1

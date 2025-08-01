@@ -1,0 +1,18 @@
+fileFormatVersion: 2
+guid: 1411de5bd99b20c4b8e0987b362da2b7
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 120
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 307235
+  packageName: MK - Grand Mahjong Game
+  packageVersion: 1.0
+  assetPath: Assets/Mahjong/Scripts/GUI/StartMap/StartMapGuiController.cs
+  uploadId: 722904

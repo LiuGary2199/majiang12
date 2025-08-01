@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: 5646d238760d481469a046654df2a045
+PrefabImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 307235
+  packageName: MK - Grand Mahjong Game
+  packageVersion: 1.0
+  assetPath: Assets/Mahjong/Prefabs/Construct/Play_Edit_ModeButton.prefab
+  uploadId: 722904

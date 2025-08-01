@@ -1,0 +1,19 @@
+fileFormatVersion: 2
+guid: 0624e9a5783194f46a41c965e6c8651c
+timeCreated: 1494399357
+licenseType: Store
+MonoImporter:
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 600
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 307235
+  packageName: MK - Grand Mahjong Game
+  packageVersion: 1.0
+  assetPath: Assets/Mahjong/Scripts/GameScripts/GridObjects/GridCell.cs
+  uploadId: 722904

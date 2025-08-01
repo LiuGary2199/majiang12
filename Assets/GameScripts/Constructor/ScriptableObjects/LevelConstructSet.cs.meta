@@ -1,0 +1,19 @@
+fileFormatVersion: 2
+guid: 4aacb66619e61bc45bee628980a128c3
+timeCreated: 1490035631
+licenseType: Store
+MonoImporter:
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 307235
+  packageName: MK - Grand Mahjong Game
+  packageVersion: 1.0
+  assetPath: Assets/Mahjong/Scripts/GameScripts/Constructor/ScriptableObjects/LevelConstructSet.cs
+  uploadId: 722904

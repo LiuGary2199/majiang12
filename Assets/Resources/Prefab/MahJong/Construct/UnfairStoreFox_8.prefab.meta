@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: 3ed6525ac2e1cfe4bac7c4d6ffb637f4
+PrefabImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 307235
+  packageName: MK - Grand Mahjong Game
+  packageVersion: 1.0
+  assetPath: Assets/Mahjong/Prefabs/Construct/ScrollPanelNew_8.prefab
+  uploadId: 722904

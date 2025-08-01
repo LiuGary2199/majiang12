@@ -1,0 +1,83 @@
+
+Door.png
+size: 3276,2668
+format: RGBA8888
+filter: Linear,Linear
+repeat: none
+Door_Shadow
+  rotate: true
+  xy: 371, 2279
+  size: 384, 2340
+  orig: 403, 2342
+  offset: 18, 1
+  index: -1
+Door_l
+  rotate: true
+  xy: 2, 1193
+  size: 540, 2340
+  orig: 542, 2342
+  offset: 1, 1
+  index: -1
+Door_r
+  rotate: true
+  xy: 2, 651
+  size: 540, 2340
+  orig: 542, 2342
+  offset: 1, 1
+  index: -1
+Round_1
+  rotate: false
+  xy: 2713, 2207
+  size: 456, 456
+  orig: 458, 458
+  offset: 1, 1
+  index: -1
+Round_Light
+  rotate: false
+  xy: 2, 1821
+  size: 456, 456
+  orig: 458, 458
+  offset: 1, 1
+  index: -1
+brid_ringlight
+  rotate: false
+  xy: 2, 2314
+  size: 367, 349
+  orig: 369, 351
+  offset: 1, 1
+  index: -1
+shadow_1
+  rotate: true
+  xy: 2344, 1102
+  size: 631, 771
+  orig: 639, 782
+  offset: 1, 1
+  index: -1
+shadow_2
+  rotate: true
+  xy: 460, 1776
+  size: 501, 505
+  orig: 536, 551
+  offset: 14, 15
+  index: -1
+shadow_3
+  rotate: false
+  xy: 2344, 353
+  size: 896, 747
+  orig: 925, 780
+  offset: 16, 12
+  index: -1
+shadow_4
+  rotate: true
+  xy: 2, 2
+  size: 647, 2270
+  orig: 673, 2295
+  offset: 13, 13
+  index: -1
+shadow_5
+  rotate: true
+  xy: 967, 1735
+  size: 470, 2307
+  orig: 494, 2332
+  offset: 12, 12
+  index: -1

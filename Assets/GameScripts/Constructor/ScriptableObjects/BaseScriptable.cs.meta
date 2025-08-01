@@ -1,0 +1,19 @@
+fileFormatVersion: 2
+guid: 1c5227e2cc910564eb99497133dacecf
+timeCreated: 1492014129
+licenseType: Store
+MonoImporter:
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 307235
+  packageName: MK - Grand Mahjong Game
+  packageVersion: 1.0
+  assetPath: Assets/Mahjong/Scripts/GameScripts/Constructor/ScriptableObjects/BaseScriptable.cs
+  uploadId: 722904

@@ -1,0 +1,18 @@
+fileFormatVersion: 2
+guid: d10acaf6ad5d89842b3e5b1dcce1e81b
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 307235
+  packageName: MK - Grand Mahjong Game
+  packageVersion: 1.0
+  assetPath: Assets/Mahjong/Scripts/GameScripts/GridObjects/MahjongTile.cs
+  uploadId: 722904

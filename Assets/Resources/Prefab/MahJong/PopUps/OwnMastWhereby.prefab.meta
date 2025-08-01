@@ -1,0 +1,16 @@
+fileFormatVersion: 2
+guid: a118860a705c42c4081f721817bb0aff
+timeCreated: 1493735367
+licenseType: Store
+NativeFormatImporter:
+  mainObjectFileID: 100100000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 307235
+  packageName: MK - Grand Mahjong Game
+  packageVersion: 1.0
+  assetPath: Assets/Mahjong/Prefabs/PopUps/GetFreeShuffle.prefab
+  uploadId: 722904

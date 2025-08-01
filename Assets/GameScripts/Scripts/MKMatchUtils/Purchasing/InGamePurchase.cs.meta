@@ -1,0 +1,18 @@
+fileFormatVersion: 2
+guid: 9059290fee6d02e4f88ed20d2bf38010
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 307235
+  packageName: MK - Grand Mahjong Game
+  packageVersion: 1.0
+  assetPath: Assets/Mahjong/Scripts/MKMatchUtils/Purchasing/InGamePurchase.cs
+  uploadId: 722904

@@ -1,0 +1,19 @@
+fileFormatVersion: 2
+guid: 5c17313e46918a046b90bd3ad718283a
+timeCreated: 1495036115
+licenseType: Store
+MonoImporter:
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 220
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 307235
+  packageName: MK - Grand Mahjong Game
+  packageVersion: 1.0
+  assetPath: Assets/Mahjong/Scripts/GameScripts/GameBoard.cs
+  uploadId: 722904

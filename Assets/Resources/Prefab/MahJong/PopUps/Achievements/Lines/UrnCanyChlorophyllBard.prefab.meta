@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: b35e17972ef9032438a39d9974904dae
+PrefabImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 307235
+  packageName: MK - Grand Mahjong Game
+  packageVersion: 1.0
+  assetPath: Assets/Mahjong/Prefabs/PopUps/Achievements/Lines/UseHintAchievementLine.prefab
+  uploadId: 722904
