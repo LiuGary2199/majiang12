@@ -96,6 +96,18 @@ namespace Mkey
         #endregion events
 
         public static GameBoard Instance { get; private set; } // 单例实例
+        // 预加载系统相关
+        private class PreloadedLevelData
+        {
+            public MatchGrid grid;                    // 预创建的网格
+            public List<Sprite> spriteAssignments;    // 预计算的图片分配
+            public int level;                         // 关卡号
+            public bool isComplete;                   // 是否完成预加载
+        }
+        private PreloadedLevelData preloadedData;
+        private bool hasClickedMahjong = false;       // 是否已经点击过麻将
+        private Transform preloadContainer;            // 预加载容器
+
 
         // 防止WinAction重复触发
         private bool hasWinActionInvoked = false;
@@ -121,6 +133,13 @@ namespace Mkey
             GameThemesHolder.Instance.SetIndex(0); // 主题选择
 
             Debug.Log("GameBoard Start 被调用");
+
+                 
+            // 初始化预加载容器
+            InitializePreloadContainer();
+            
+            // 监听麻将点击事件
+            SharplyResort.AxeCarIncoming(CFellow.mg_OnMahjongClick, OnMahjongClick);
             #region game sets 
             if (!GCSet)
             {
@@ -250,9 +269,65 @@ namespace Mkey
             isInAutoCollect = false;
             hasWinActionInvoked = false;
             goldComboCount = 0;
+            hasClickedMahjong = false; // 重置点击麻将标志
+            MGLevel.Load();
             Debug.Log("Create gameboard ");
             Debug.Log("level set: " + LCSet.name);
             Debug.Log("current level: " + GameLevelHolder.CurrentLevel);
+
+             // 检查是否有预加载数据可用
+            Debug.Log($"=== 检查预加载数据 ===");
+            Debug.Log($"preloadedData: {(preloadedData != null ? "存在" : "null")}");
+            if (preloadedData != null)
+            {
+                Debug.Log($"preloadedData.isComplete: {preloadedData.isComplete}");
+                Debug.Log($"preloadedData.level: {preloadedData.level}");
+                Debug.Log($"GameLevelHolder.CurrentLevel: {GameLevelHolder.CurrentLevel}");
+                Debug.Log($"preloadedData.spriteAssignments.Count: {preloadedData.spriteAssignments?.Count ?? 0}");
+            }
+            
+            bool hasPreloadedData = preloadedData != null && preloadedData.isComplete && preloadedData.level == GameLevelHolder.CurrentLevel;
+            Debug.Log($"hasPreloadedData: {hasPreloadedData}");
+            
+            if (hasPreloadedData)
+            {
+                Debug.Log("使用预加载数据快速切换关卡");
+                // 先正常重建网格结构
+                BackGround = GOSet.GetBackGround(LCSet.BackGround);
+                
+                if (GMode == GameMode.Play)
+                {
+                    Func<LevelConstructSet, Transform, MatchGrid> create = (lC, container) =>
+                    {
+                        MatchGrid g = new MatchGrid(lC, GOSet, container, GMode);
+                        g.Cells.ForEach((c) =>
+                        {
+#if UNITY_EDITOR
+                            c.name = c.ToString();
+#endif
+                        });
+                        return g;
+                    };
+
+                    MainGrid = create(LCSet, GridContainer);
+                }
+                
+                MainGrid.SetTofrontAll(false);
+                
+                // 然后应用预加载的图片分配
+                ApplyPreloadedSpriteAssignments();
+                TestCallback();
+                
+
+                 // 从第三关开始，在图片分配完成后播放入场动画
+                if (GameLevelHolder.CurrentLevel >= 2)
+                {
+                    StartCoroutine(PlayLevelLoadAnimation());
+                }
+                // 清理预加载数据
+                CleanupPreloadedData();
+                return; // 使用预加载数据后直接返回，不执行后续的创建逻辑
+            }
 
             // 触发关卡加载事件来更新UI
             MGLevel.LoadEvent?.Invoke(GameLevelHolder.CurrentLevel);
@@ -678,9 +753,11 @@ namespace Mkey
                     {
                        
                     });
-                    DOVirtual.DelayedCall(1.8f, () =>  //停顿
+                    DOVirtual.DelayedCall(0.3f, () =>  //停顿
                     {
                         finishanim = false;
+                        leftTile.gameObject.SetActive(false);
+                        rightTile.gameObject.SetActive(false);
                     });
                 }
                 else
@@ -690,9 +767,11 @@ namespace Mkey
                     {
                       
                     });
-                    DOVirtual.DelayedCall(1.8f, () =>  //停顿
+                    DOVirtual.DelayedCall(0.3f, () =>  //停顿
                     {
                         finishanim = false;
+                         leftTile.gameObject.SetActive(false);
+                        rightTile.gameObject.SetActive(false);
                     });
                 }
             });
@@ -1068,35 +1147,7 @@ namespace Mkey
             FailedMatchAction?.Invoke();
         }
 
-        /// <summary>
-        /// 通关后加载下一关（仅用UI和数据刷新，不重载场景）
-        /// </summary>
-        public void CompleteAndLoadNextLevel()
-        {
-            // 关卡切换时重置自动收集和通关标志
-            isAutoCollecting = false;
-            hasTriggeredAutoCollect = false;
-            isInAutoCollect = false;
-            hasWinActionInvoked = false;
-            goldComboCount = 0;
-            var sw = System.Diagnostics.Stopwatch.StartNew();
-            // 更新当前关卡编号到下一关并触发UI更新
-            GameLevelHolder.SetCurrentLevelAndUpdateUI(GameLevelHolder.CurrentLevel + 1);
-
-            // 刷新关卡数据和UI
-            MainGrid.Rebuild(GOSet, GMode);
-            sw.Stop();
-            Debug.Log($"[耗时] MainGrid.Rebuild: {sw.ElapsedMilliseconds} ms");
-            var swSprites = System.Diagnostics.Stopwatch.StartNew();
-            // 用静态测试回调
-            MainGrid.SetMahjongSprites(() =>
-            {
-                swSprites.Stop();
-                Debug.Log($"[耗时] SetMahjongSprites: {swSprites.ElapsedMilliseconds} ms");
-                TestCallback();
-            });
-        }
-
+       
         // 延迟一帧并输出日志后遮灰
         private IEnumerator DelayHighlightFreeWithLog()
         {
@@ -1120,6 +1171,12 @@ namespace Mkey
         {
             hasWinActionInvoked = false; // 场景销毁时重置
             Debug.Log("GameBoard OnDestroy 被调用");
+                        // 移除消息监听
+           
+            SharplyResort.AwhileCarIncoming(CFellow.mg_OnMahjongClick, OnMahjongClick);
+            
+            // 清理预加载数据
+            CleanupPreloadedData();
         }
 
         private bool isAutoCollecting = false;
@@ -1217,5 +1274,540 @@ namespace Mkey
                 TryGoldRewardOnCombo();
             }
         }
+
+         #region 预加载系统
+        /// <summary>
+        /// 初始化预加载容器
+        /// </summary>
+        private void InitializePreloadContainer()
+        {
+            // 创建一个隐藏的容器用于预加载
+            GameObject preloadGO = new GameObject("PreloadContainer");
+            preloadContainer = preloadGO.transform;
+            preloadContainer.SetParent(transform);
+            preloadContainer.localPosition = new Vector3(100, 0, 0); // 移出屏幕100像素
+            Debug.Log("预加载容器已初始化");
+        }
+
+        /// <summary>
+        /// 麻将点击事件处理
+        /// </summary>
+        private void OnMahjongClick(object data)
+        {
+            Debug.Log($"OnMahjongClick被调用，当前关卡: {GameLevelHolder.CurrentLevel}, hasClickedMahjong: {hasClickedMahjong}");
+            
+            if (preloadContainer == null)
+            {
+                Debug.Log("预加载容器未初始化");
+                return;
+            }
+            
+            if (!hasClickedMahjong)
+            {
+                hasClickedMahjong = true;
+                Debug.Log("玩家第一次点击麻将，延迟启动预加载下一关");
+                // 延迟启动预加载，避免点击时的卡顿
+                StartCoroutine(DelayedStartPreload());
+            }
+        }
+ /// <summary>
+        /// 延迟启动预加载，避免点击时的卡顿
+        /// </summary>
+        private IEnumerator DelayedStartPreload()
+        {
+            // 等待当前帧结束，确保点击响应完成
+            yield return null;
+            
+            // 再等待一帧，确保UI响应完成
+            yield return null;
+            
+            // 检查游戏状态，如果正在处理匹配，再等待一下
+            if (isProcessingMatch || matchQueue.Count > 0)
+            {
+                Debug.Log("游戏正在处理匹配，等待处理完成后再开始预加载");
+                yield return new WaitForSeconds(1.0f); // 等待1秒
+            }
+            
+            // 额外等待多帧，确保所有游戏逻辑都完成
+            for (int i = 0; i < 10; i++)
+            {
+                yield return null;
+            }
+            
+            // 再等待一段时间，确保游戏完全稳定
+            yield return new WaitForSeconds(0.5f);
+            
+            // 检查游戏是否空闲
+            int idleFrames = 0;
+            while (idleFrames < 30) // 等待30帧的空闲时间
+            {
+                if (isProcessingMatch || matchQueue.Count > 0 || isInAutoCollect)
+                {
+                    idleFrames = 0; // 重置空闲计数
+                    yield return new WaitForSeconds(0.1f);
+                }
+                else
+                {
+                    idleFrames++;
+                    yield return null;
+                }
+            }
+            
+            Debug.Log("游戏空闲，开始预加载");
+            
+            // 现在开始预加载
+            StartPreloadNextLevel();
+        }
+
+        /// <summary>
+        /// 开始预加载下一关
+        /// </summary>
+        public void StartPreloadNextLevel()
+        {
+            int nextLevel = GameLevelHolder.CurrentLevel + 1;
+            Debug.Log($"开始预加载下一关: {nextLevel}");
+            
+            // 第一关是引导关，不预加载
+            if (GameLevelHolder.CurrentLevel == 0)
+            {
+                Debug.Log($"关卡 {GameLevelHolder.CurrentLevel} 是引导关，跳过预加载");
+                return;
+            }
+            
+            // 检查是否已经预加载过
+            if (preloadedData != null && preloadedData.level == nextLevel && preloadedData.isComplete)
+            {
+                Debug.Log($"关卡 {nextLevel} 已经预加载过了");
+                return;
+            }
+               // 检查游戏状态，如果游戏繁忙，延迟启动
+            if (isProcessingMatch || matchQueue.Count > 0 || isInAutoCollect)
+            {
+                Debug.Log("游戏状态繁忙，延迟启动预加载");
+                StartCoroutine(DelayedStartPreload());
+                return;
+            }
+            
+            // 检查当前帧率，如果帧率太低，延迟启动
+            if (Time.deltaTime > 0.033f) // 如果帧率低于30FPS
+            {
+                Debug.Log("当前帧率较低，延迟启动预加载");
+                StartCoroutine(DelayedStartPreload());
+                return;
+            }
+            
+            // 使用低优先级启动预加载，避免影响游戏性能
+            StartCoroutine(PreloadNextLevelCoroutine(nextLevel));
+        }
+
+        /// <summary>
+        /// 预加载下一关的协程
+        /// </summary>
+        private IEnumerator PreloadNextLevelCoroutine(int levelToPreload)
+        {
+            float startTime = Time.realtimeSinceStartup;
+            Debug.Log($"[预加载性能] 开始预加载关卡 {levelToPreload}");
+            
+            // 获取下一关的配置
+            var nextLevelConfig = GCSet.GetLevelConstructSet(levelToPreload);
+            if (nextLevelConfig == null)
+            {
+                Debug.LogWarning($"关卡 {levelToPreload} 配置不存在，跳过预加载");
+                yield break;
+            }
+
+            // 创建预加载数据
+            preloadedData = new PreloadedLevelData();
+            preloadedData.level = levelToPreload;
+            preloadedData.isComplete = false;
+   // 在预加载容器中创建网格
+            float gridStartTime = Time.realtimeSinceStartup;
+            Debug.Log($"[预加载性能] 开始创建预加载网格，配置: {nextLevelConfig.name}");
+            
+            // 分帧创建网格
+            yield return StartCoroutine(CreateGridWithFrameSplit(nextLevelConfig));
+            
+            float gridTime = Time.realtimeSinceStartup - gridStartTime;
+            int tileCount = preloadedData.grid.GetTiles().Length;
+            Debug.Log($"[预加载性能] 网格创建完成，耗时: {gridTime:F3}秒，麻将牌数量: {tileCount}");
+            
+            // 预计算图片分配
+            float spriteStartTime = Time.realtimeSinceStartup;
+            Debug.Log("[预加载性能] 开始预计算图片分配");
+            yield return StartCoroutine(PrecalculateSpriteAssignmentsOptimized());
+            
+            float spriteTime = Time.realtimeSinceStartup - spriteStartTime;
+            Debug.Log($"[预加载性能] 图片分配完成，耗时: {spriteTime:F3}秒");
+            
+            preloadedData.isComplete = true;
+            float totalTime = Time.realtimeSinceStartup - startTime;
+            Debug.Log($"[预加载性能] 关卡 {levelToPreload} 预加载完成，总耗时: {totalTime:F3}秒");
+            
+            // 记录性能数据
+            PreloadPerformanceMonitor.RecordPreloadPerformance(levelToPreload, tileCount, totalTime, gridTime, spriteTime);
+        }
+
+        /// <summary>
+        /// 分帧创建网格，避免卡顿
+        /// </summary>
+        private IEnumerator CreateGridWithFrameSplit(LevelConstructSet levelConfig)
+        {
+            // 创建网格对象（使用预加载专用构造函数，只创建网格结构）
+            preloadedData.grid = new MatchGrid(levelConfig, GOSet, preloadContainer, GMode, true);
+            
+            // 等待多帧，让网格初始化完成
+            for (int i = 0; i < 3; i++)
+            {
+                yield return null;
+            }
+            
+            // 异步创建麻将牌
+            yield return StartCoroutine(preloadedData.grid.CreateMahjongTilesAsync(levelConfig, GMode));
+            
+            // 获取麻将牌并分帧处理
+            var tiles = preloadedData.grid.GetTiles();
+            if (tiles != null && tiles.Length > 0)
+            {
+                int tilesPerFrame = 1; // 每帧处理1个麻将牌，最大程度减少单帧负载
+                int processedCount = 0;
+                
+                for (int i = 0; i < tiles.Length; i += tilesPerFrame)
+                {
+                    // 处理这一批麻将牌
+                    int endIndex = Mathf.Min(i + tilesPerFrame, tiles.Length);
+                    for (int j = i; j < endIndex; j++)
+                    {
+                        if (tiles[j] != null)
+                        {
+                            // 这里可以添加一些初始化逻辑
+                            tiles[j].SetToFront(false);
+                            processedCount++;
+                        }
+                    }
+                    
+                    // 每处理一批就暂停多帧
+                    for (int k = 0; k < 2; k++)
+                    {
+                        yield return null;
+                    }
+                    
+                    // 每处理3批后，额外等待多帧，确保游戏流畅
+                    if (processedCount % (tilesPerFrame * 3) == 0)
+                    {
+                        for (int k = 0; k < 3; k++)
+                        {
+                            yield return null;
+                        }
+                    }
+                    
+                    // 每处理10批后，额外等待更多帧，确保游戏非常流畅
+                    if (processedCount % (tilesPerFrame * 10) == 0)
+                    {
+                        for (int k = 0; k < 5; k++)
+                        {
+                            yield return null;
+                        }
+                    }
+                }
+                
+                Debug.Log($"[预加载性能] 网格初始化完成，处理了 {processedCount} 个麻将牌");
+            }
+        }
+
+        /// <summary>
+        /// 优化的预计算图片分配
+        /// </summary>
+        private IEnumerator PrecalculateSpriteAssignmentsOptimized()
+        {
+            var tiles = preloadedData.grid.GetTiles();
+            preloadedData.spriteAssignments = new List<Sprite>();
+            
+            if (tiles == null || tiles.Length == 0)
+            {
+                Debug.LogWarning("[预加载性能] 没有麻将牌需要分配图片");
+                yield break;
+            }
+            
+            Debug.Log($"[预加载性能] 开始分配图片，麻将牌数量: {tiles.Length}");
+            
+            // 使用预加载专用的图片分配算法，传入目标关卡号
+            // 使用更大的yieldStep加速预加载，但保持分帧
+            yield return StartCoroutine(preloadedData.grid.SetMahjongSpritesForPreloadAsync(preloadedData.level, () => {
+                Debug.Log("[预加载性能] 预加载网格图片分配完成");
+            }, 1)); // 每1个操作暂停一帧，最大程度减少单帧负载
+            
+            // 分帧保存分配结果
+            Debug.Log("[预加载性能] 开始保存图片分配结果");
+            int savePerFrame = 1; // 每帧保存1个结果，最大程度减少单帧负载
+            int savedCount = 0;
+            
+            for (int i = 0; i < tiles.Length; i += savePerFrame)
+            {
+                int endIndex = Mathf.Min(i + savePerFrame, tiles.Length);
+                for (int j = i; j < endIndex; j++)
+                {
+                    if (tiles[j] != null && tiles[j].MSprite != null)
+                    {
+                        preloadedData.spriteAssignments.Add(tiles[j].MSprite);
+                    }
+                    else
+                    {
+                        preloadedData.spriteAssignments.Add(null);
+                    }
+                    savedCount++;
+                }
+                
+                // 每保存一批就暂停多帧
+                for (int k = 0; k < 2; k++)
+                {
+                    yield return null;
+                }
+                
+                // 每保存3批后，额外等待多帧，确保游戏流畅
+                if (savedCount % (savePerFrame * 3) == 0)
+                {
+                    for (int k = 0; k < 3; k++)
+                    {
+                        yield return null;
+                    }
+                }
+                
+                // 每保存10批后，额外等待更多帧，确保游戏非常流畅
+                if (savedCount % (savePerFrame * 10) == 0)
+                {
+                    for (int k = 0; k < 5; k++)
+                    {
+                        yield return null;
+                    }
+                }
+            }
+            
+            Debug.Log($"[预加载性能] 预加载图片分配保存完成，共保存 {preloadedData.spriteAssignments.Count} 个图片分配");
+        }
+
+        /// <summary>
+        /// 应用预加载的图片分配
+        /// </summary>
+        private void ApplyPreloadedSpriteAssignments()
+        {
+            if (preloadedData == null || !preloadedData.isComplete)
+            {
+                Debug.LogWarning("没有可用的预加载数据");
+                return;
+            }
+            
+            var tiles = MainGrid.GetTiles();
+            Debug.Log($"应用预加载图片分配: {tiles.Length}个麻将, {preloadedData.spriteAssignments.Count}个图片");
+            
+            // 应用图片分配
+            for (int i = 0; i < tiles.Length && i < preloadedData.spriteAssignments.Count; i++)
+            {
+                if (preloadedData.spriteAssignments[i] != null)
+                {
+                    tiles[i].SetSprite(preloadedData.spriteAssignments[i]);
+                }
+            }
+            
+            Debug.Log("预加载图片分配应用完成");
+        }
+
+        /// <summary>
+        /// 清理预加载数据
+        /// </summary>
+        private void CleanupPreloadedData()
+        {
+            if (preloadedData != null && preloadedData.grid != null)
+            {
+                // 只销毁预加载的网格内容，不销毁preloadContainer本身
+                var tiles = preloadedData.grid.GetTiles();
+                foreach (var tile in tiles)
+                {
+                    if (tile != null && tile.gameObject != null)
+                    {
+                        UnityEngine.Object.DestroyImmediate(tile.gameObject);
+                    }
+                }
+                
+                // 清理预加载数据
+                preloadedData = null;
+                Debug.Log("预加载数据已清理");
+            }
+        }
+
+        /// <summary>
+        /// 测试预加载性能（开发调试用）
+        /// </summary>
+        [ContextMenu("测试预加载性能")]
+        public void TestPreloadPerformance()
+        {
+            if (preloadContainer == null)
+            {
+                InitializePreloadContainer();
+            }
+            
+            Debug.Log("[预加载性能测试] 开始测试预加载性能");
+            StartCoroutine(TestPreloadPerformanceCoroutine());
+        }
+        
+        private IEnumerator TestPreloadPerformanceCoroutine()
+        {
+            // 测试预加载下一关
+            int testLevel = GameLevelHolder.CurrentLevel + 1;
+            Debug.Log($"[预加载性能测试] 测试预加载关卡 {testLevel}");
+            
+            yield return StartCoroutine(PreloadNextLevelCoroutine(testLevel));
+            
+            // 显示性能摘要
+            PreloadPerformanceMonitor.LogPerformanceSummary();
+            
+            // 清理测试数据
+            CleanupPreloadedData();
+            
+            Debug.Log("[预加载性能测试] 测试完成");
+        }
+
+
+        #endregion 预加载系统
+
+        /// <summary>
+        /// 播放入场动画：将所有麻将牌移动到很大位置，然后按层级一层一层移动回原位
+        /// </summary>
+        private IEnumerator PlayLevelLoadAnimation()
+        {
+            Debug.Log("开始播放入场动画");
+            
+            var tiles = MainGrid.GetTiles();
+            if (tiles == null || tiles.Length == 0)
+            {
+                Debug.LogWarning("没有麻将牌可以播放动画");
+                yield break;
+            }
+            
+            // 1. 将所有麻将牌移动到很大位置
+            Vector3 startPosition = new Vector3(100, 0, 0); // 起始位置Y轴100
+            foreach (var tile in tiles)
+            {
+                if (tile != null && tile.transform != null)
+                {
+                    // 直接动画麻将牌的主Transform，而不是Ani子节点
+                    tile.transform.localPosition = startPosition;
+                }
+            }
+            
+            // 2. 按层级分组
+            var tilesByLayer = new Dictionary<int, List<MahjongTile>>();
+            foreach (var tile in tiles)
+            {
+                if (tile != null)
+                {
+                    int layer = tile.Layer;
+                    if (!tilesByLayer.ContainsKey(layer))
+                    {
+                        tilesByLayer[layer] = new List<MahjongTile>();
+                    }
+                    tilesByLayer[layer].Add(tile);
+                }
+            }
+            
+            // 3. 按层级顺序移动回原位（layer 0先移动，但间隔很短）
+            var sortedLayers = new List<int>(tilesByLayer.Keys);
+            sortedLayers.Sort(); // 从低层到高层，layer 0先移动
+            
+            // 创建所有层的动画序列
+            var allSequences = DOTween.Sequence();
+            
+            foreach (int layer in sortedLayers)
+            {
+                var layerTiles = tilesByLayer[layer];
+                Debug.Log($"准备第{layer}层动画，麻将牌数量: {layerTiles.Count}");
+                
+                // 为这一层创建动画序列
+                var layerSequence = DOTween.Sequence();
+                
+                foreach (var tile in layerTiles)
+                {
+                    if (tile != null && tile.transform != null)
+                    {
+                        // 直接动画麻将牌的主Transform
+                        layerSequence.Join(tile.transform.DOLocalMove(Vector3.zero, 0.7f)
+                            .SetEase(Ease.Linear));
+                    }
+                }
+                
+                // 将这一层的动画添加到总序列中，延迟很短
+                float delay = layer * 0.2f; // 每层延迟0.05秒
+                allSequences.Insert(delay, layerSequence);
+            }
+            
+            // 播放所有动画
+            yield return allSequences.WaitForCompletion();
+            
+            // 动画完成后，恢复正确的Z轴位置
+            Debug.Log("恢复麻将牌的正确Z轴位置");
+            foreach (var tile in tiles)
+            {
+                if (tile != null && tile.transform != null)
+                {
+                    // 恢复层级偏移的Z轴位置
+                    Vector3 currentPos = tile.transform.localPosition;
+                    Vector3 layerOffset = tile.layerOffset * tile.Layer;
+                    tile.transform.localPosition = new Vector3(currentPos.x, currentPos.y, layerOffset.z);
+                    
+                    Debug.Log($"恢复麻将牌 {tile.name} 的Z轴位置: {layerOffset.z} (层级: {tile.Layer})");
+                }
+            }
+            
+            // 动画完成后，更新所有麻将牌的spritetransformPosition为当前位置
+            Debug.Log("更新所有麻将牌的spritetransformPosition");
+            foreach (var tile in tiles)
+            {
+                if (tile != null)
+                {
+                    var tileTouchBehavior = tile.GetComponent<TileTouchBehavior>();
+                    if (tileTouchBehavior != null)
+                    {
+                        // 使用反射更新spritetransformPosition字段
+                        var field = typeof(TileTouchBehavior).GetField("spritetransformPosition", 
+                            System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+                        if (field != null)
+                        {
+                            // 将Vector3转换为Vector2
+                            Vector3 position3D = tile.SRenderer.transform.position;
+                            Vector2 position2D = new Vector2(position3D.x, position3D.y);
+                            field.SetValue(tileTouchBehavior, position2D);
+                        }
+                    }
+                }
+            }
+            
+            Debug.Log("入场动画播放完成");
+        }
     }
+
+    #region 预加载性能监控
+    public static class PreloadPerformanceMonitor
+    {
+        public static float LastPreloadTotalTime { get; private set; }
+        public static float LastGridCreationTime { get; private set; }
+        public static float LastSpriteAssignmentTime { get; private set; }
+        public static int LastPreloadLevel { get; private set; }
+        public static int LastTileCount { get; private set; }
+        
+        public static void RecordPreloadPerformance(int level, int tileCount, float totalTime, float gridTime, float spriteTime)
+        {
+            LastPreloadLevel = level;
+            LastTileCount = tileCount;
+            LastPreloadTotalTime = totalTime;
+            LastGridCreationTime = gridTime;
+            LastSpriteAssignmentTime = spriteTime;
+            
+            Debug.Log($"[预加载性能监控] 关卡{level}预加载完成 - 总耗时:{totalTime:F3}s, 网格创建:{gridTime:F3}s, 图片分配:{spriteTime:F3}s, 麻将牌数量:{tileCount}");
+        }
+        
+        public static void LogPerformanceSummary()
+        {
+            Debug.Log($"[预加载性能监控] 最近预加载 - 关卡:{LastPreloadLevel}, 麻将牌:{LastTileCount}, 总耗时:{LastPreloadTotalTime:F3}s");
+        }
+    }
+    #endregion 预加载性能监控
 }

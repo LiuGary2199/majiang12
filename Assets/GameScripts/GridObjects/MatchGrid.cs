@@ -69,6 +69,46 @@ namespace Mkey
         }
 
         /// <summary>
+        /// 预加载专用构造函数，只创建网格结构，不创建麻将牌
+        /// </summary>
+        public MatchGrid(LevelConstructSet lcSet, GameObjectsSet goSet, Transform parent, GameMode gMode, bool forPreload)
+        {
+            this.LcSet = lcSet;
+            this.Parent = parent;
+            this.gMode = gMode;
+            Debug.Log("new preload grid " + lcSet.name);
+
+            vertSize = lcSet.VertSize;
+            horSize = lcSet.HorSize;
+            this.goSet = goSet;
+            prefab = goSet.gridCellPrefab;
+            cellSize = prefab.GetComponent<BoxCollider2D>().size;
+
+            float deltaX = lcSet.DistX;
+            float deltaY = lcSet.DistY;
+            SetScale(lcSet.Scale);
+
+            Cells = new List<GridCell>(vertSize * horSize);
+            Rows = new List<Row<GridCell>>(vertSize);
+
+            yOffset = 0;
+            xStep = (cellSize.x + deltaX);
+            yStep = (cellSize.y + deltaY);
+
+            cOffset = (1 - horSize) * xStep / 2.0f; // offset from center by x-axe
+            yStart = (vertSize - 1) * yStep / 2.0f;
+
+            //instantiate cells
+            for (int i = 0; i < vertSize; i++)
+            {
+                AddRow();
+            }
+            InitCells();
+            Debug.Log("Created Preload Grid Cells: " + Cells.Count);
+            // 不调用SetObjectsData，麻将牌将在异步方法中创建
+        }
+
+        /// <summary>
         /// 重建网格，重新分配格子和对象
         /// </summary>
         public void Rebuild(GameObjectsSet mSet, GameMode gMode)
@@ -679,7 +719,254 @@ namespace Mkey
                 tile.SetToFront(false);
         }*/
 
-        // 协程分帧分配麻将图片，保持高可玩性
+        /// <summary>
+        /// 预加载专用的图片分配方法
+        /// </summary>
+        public System.Collections.IEnumerator SetMahjongSpritesForPreloadAsync(int targetLevel, System.Action onComplete, int yieldStep = 1)
+        {
+            float startTime = Time.realtimeSinceStartup;
+            Debug.Log($"[预加载性能] 开始预加载图片分配，麻将牌数量: {tiles.Count}");
+            
+            // 预加载永远不会加载新手引导关，直接使用普通关卡的图片分配逻辑
+            for (int i = 0; i < tiles.Count; i++)
+            {
+                tiles[i].PlayLoad();
+            }
+            
+            // 获取图片对，分帧处理
+            float spriteStartTime = Time.realtimeSinceStartup;
+            var sprites = goSet.GetRandomPairs(tiles.Count / 2, LcSet.fillType);
+            yield return null; // 分帧：获取图片对后暂停
+            yield return null; // 额外分帧：确保完全平滑
+            float spriteTime = Time.realtimeSinceStartup - spriteStartTime;
+            Debug.Log($"[预加载性能] 获取图片对完成，耗时: {spriteTime:F3}秒，图片对数量: {sprites.Count}");
+            
+            var tT = tiles;
+            bool failed = false;
+            int yieldCounter = 0;
+            
+            // 1 type - get random from free to fill tiles
+            float strategy1StartTime = Time.realtimeSinceStartup;
+            Debug.Log("[预加载性能] 开始策略1分配");
+            for (int i = 0; i < tT.Count; i += 2)
+            {
+                // 分帧：每次循环都暂停
+                yield return null; // 每次循环都暂停
+                
+                List<MahjongTile> freeTiles = GetFreeToFillTiles(tiles, true, false);      // not sorted by layer
+                if(freeTiles.Count < 5) freeTiles = GetFreeToFillTiles(tiles, true, true); // avoid last error (tile 0 over tile)
+                if(freeTiles.Count == 1)
+                {
+                    failed = true;
+                    Debug.Log("[预加载性能] 策略1失败，可用麻将牌不足");
+                    onComplete?.Invoke();
+                    yield break;
+                }
+                MahjongTile t1 = freeTiles[0];
+                MahjongTile t2 = freeTiles[1];
+                freeTiles[0].SetExcluded(true);
+                yield return null; // 设置排除状态后暂停
+                freeTiles[1].SetExcluded(true);
+                yield return null; // 设置排除状态后暂停
+                SpritesPair s = sprites[i / 2];
+                t1.SetSprite(s.sprite_1);
+                yield return null; // 设置第一个图片后暂停
+                t2.SetSprite(s.sprite_2);
+                
+                // 平滑优化：设置图片后立即暂停一帧
+                yield return null;
+                
+                yieldCounter++;
+                // 每分配一对麻将牌就暂停一帧，减少卡顿
+                if (yieldCounter % yieldStep == 0) yield return null;
+            }
+            if (!failed) {
+                float strategy1Time = Time.realtimeSinceStartup - strategy1StartTime;
+                Debug.Log($"[预加载性能] 策略1分配成功，耗时: {strategy1Time:F3}秒");
+                onComplete?.Invoke();
+                foreach (var tile in Parent.GetComponentsInChildren<MahjongTile>(true))
+                {
+                    tile.SetToFront(false);
+                }
+                yield break;
+            }
+            
+            // 分帧：策略1失败后暂停
+            yield return null;
+            yield return null; // 额外分帧
+            
+            // 2 type -  get first from most top layer, second from most bottom layer
+            if (failed)
+            {
+                float strategy2StartTime = Time.realtimeSinceStartup;
+                Debug.Log("[预加载性能] 开始策略2分配");
+                tiles.ForEach((t) => { t.SetExcluded(false); });
+                for (int i = 0; i < tT.Count; i += 2)
+                {
+                    // 分帧：每次循环都暂停
+                    yield return null; // 每次循环都暂停
+                    
+                    List<MahjongTile>  freeTiles = GetFreeToFillTiles(tiles, true, true); // reverse sorted
+                    if (freeTiles.Count == 1)
+                    {
+                        failed = true;
+                        Debug.Log("[预加载性能] 策略2失败，可用麻将牌不足");
+                        onComplete?.Invoke();
+                        yield break;
+                    }
+                    MahjongTile t1 = freeTiles[0];
+                    MahjongTile t2 = freeTiles[freeTiles.Count - 1];
+                    freeTiles[0].SetExcluded(true);
+                    yield return null; // 设置排除状态后暂停
+                    freeTiles[1].SetExcluded(true);
+                    yield return null; // 设置排除状态后暂停
+                    SpritesPair s = sprites[i/2];
+                    t1.SetSprite(s.sprite_1);
+                    yield return null; // 设置第一个图片后暂停
+                    t2.SetSprite(s.sprite_2);
+                    
+                    // 平滑优化：设置图片后立即暂停一帧
+                    yield return null;
+                    
+                    yieldCounter++;
+                    // 每分配一对麻将牌就暂停一帧，减少卡顿
+                    if (yieldCounter % yieldStep == 0) yield return null;
+                }
+                float strategy2Time = Time.realtimeSinceStartup - strategy2StartTime;
+                Debug.Log($"[预加载性能] 策略2分配完成，耗时: {strategy2Time:F3}秒");
+            }
+            if (!failed) {
+                onComplete?.Invoke();
+                foreach (var tile in Parent.GetComponentsInChildren<MahjongTile>(true))
+                {
+                    tile.SetToFront(false);
+                }
+                yield break;
+            }
+            
+            // 分帧：策略2失败后暂停
+            yield return null;
+            yield return null; // 额外分帧
+            
+            // 3 type - get 2 tiles from most top layers
+            if (failed)
+            {
+                float strategy3StartTime = Time.realtimeSinceStartup;
+                Debug.Log("[预加载性能] 开始策略3分配");
+                tiles.ForEach((t)=> { t.SetExcluded(false); });
+                failed = false;
+                for (int i = 0; i < tT.Count; i += 2)
+                {
+                    // 分帧：每次循环都暂停
+                    yield return null; // 每次循环都暂停
+                    
+                    List<MahjongTile> freeTiles = GetFreeToFillTiles(tiles, true, true); // reverse sorted
+                    if (freeTiles.Count == 1)
+                    {
+                        failed = true;
+                        Debug.Log("[预加载性能] 策略3失败，可用麻将牌不足");
+                        onComplete?.Invoke();
+                        yield break;
+                    }
+                    MahjongTile t1 = freeTiles[0];
+                    MahjongTile t2 = freeTiles[1];
+                    freeTiles[0].SetExcluded(true);
+                    yield return null; // 设置排除状态后暂停
+                    freeTiles[1].SetExcluded(true);
+                    yield return null; // 设置排除状态后暂停
+                    SpritesPair s = sprites[i / 2];
+                    t1.SetSprite(s.sprite_1);
+                    yield return null; // 设置第一个图片后暂停
+                    t2.SetSprite(s.sprite_2);
+                    
+                    // 平滑优化：设置图片后立即暂停一帧
+                    yield return null;
+                    
+                    yieldCounter++;
+                    // 每分配一对麻将牌就暂停一帧，减少卡顿
+                    if (yieldCounter % yieldStep == 0) yield return null;
+                }
+                float strategy3Time = Time.realtimeSinceStartup - strategy3StartTime;
+                Debug.Log($"[预加载性能] 策略3分配完成，耗时: {strategy3Time:F3}秒");
+            }
+            if (!failed) {
+                onComplete?.Invoke();
+                foreach (var tile in Parent.GetComponentsInChildren<MahjongTile>(true))
+                {
+                    tile.SetToFront(false);
+                }
+                yield break;
+            }
+            
+            // 分帧：所有策略失败，开始兜底分配前暂停
+            yield return null;
+            yield return null; // 额外分帧
+            
+            // 兜底：分配失败，智能兜底分配
+            float fallbackStartTime = Time.realtimeSinceStartup;
+            Debug.Log("[预加载性能] 开始兜底分配");
+            int bestMatchCount = -1;
+            List<Sprite> bestSprites = null;
+            for (int tryIdx = 0; tryIdx < 20; tryIdx++)
+            {
+                // 分帧：每次尝试前暂停
+                yield return null; // 每次尝试都暂停
+                
+                List<Sprite> allSprites = new List<Sprite>();
+                for (int i = 0; i < sprites.Count; i++)
+                {
+                    allSprites.Add(sprites[i].sprite_1);
+                    allSprites.Add(sprites[i].sprite_2);
+                }
+                allSprites.Shuffle();
+                tiles.ForEach(t => { t.SetExcluded(false); t.SetSprite(null); });
+                for (int i = 0; i < tiles.Count; i++)
+                {
+                    tiles[i].SetSprite(allSprites[i]);
+                    // 每分配一个麻将牌就暂停一帧，减少卡顿
+                    if (i % 1 == 0) yield return null; // 每个麻将牌都暂停
+                }
+                int matchCount = 0;
+                try
+                {
+                    var possibleMatches = new PossibleMatches(tiles.FindAll(t => t != null && t.IsFreeToMatch()));
+                    matchCount = possibleMatches.Count;
+                }
+                catch { matchCount = 0; }
+                if (matchCount > bestMatchCount)
+                {
+                    bestMatchCount = matchCount;
+                    bestSprites = new List<Sprite>(allSprites);
+                }
+                yield return null;
+            }
+            if (bestSprites != null)
+            {
+                for (int i = 0; i < tiles.Count; i++)
+                {
+                    tiles[i].SetSprite(bestSprites[i]);
+                    // 每分配一个麻将牌就暂停一帧，减少卡顿
+                    if (i % 1 == 0) yield return null; // 每个麻将牌都暂停
+                }
+            }
+            float fallbackTime = Time.realtimeSinceStartup - fallbackStartTime;
+            Debug.Log($"[预加载性能] 兜底分配完成，耗时: {fallbackTime:F3}秒，最优可消对数: {bestMatchCount}");
+            
+            foreach (var tile in tiles)
+            {
+                if (tile.SRenderer.sprite == null)
+                    Debug.LogError($"分配后有白图，tile: {tile.name}");
+            }
+            onComplete?.Invoke();
+            foreach (var tile in Parent.GetComponentsInChildren<MahjongTile>(true))
+            {
+                tile.SetToFront(false);
+            }
+            
+            float totalTime = Time.realtimeSinceStartup - startTime;
+            Debug.Log($"[预加载性能] 图片分配完成，总耗时: {totalTime:F3}秒");
+        }
+
         public System.Collections.IEnumerator SetMahjongSpritesAsync(System.Action onComplete, int yieldStep = 1)
         {
             // 第一关新手引导特殊排列
@@ -905,6 +1192,93 @@ namespace Mkey
             {
                 tile.SetToFront(false);
             }
+        }
+
+        /// <summary>
+        /// 异步创建麻将牌（用于预加载）
+        /// </summary>
+        public System.Collections.IEnumerator CreateMahjongTilesAsync(LevelConstructSet lcSet, GameMode gMode)
+        {
+            Debug.Log("[预加载性能] 开始异步创建麻将牌");
+            
+            tiles = new List<MahjongTile>();
+            int countLimit = int.MaxValue;
+            
+            if (lcSet.cells != null)
+            {
+                bool canSetNextLayer = true;
+                for (int layer = 0; layer < GameConstructSet.MaxLayersCount; layer++)
+                {
+                    if (canSetNextLayer)
+                    {
+                        canSetNextLayer = false;
+                        int objectsCount = 0;
+                        int processedInLayer = 0;
+                        
+                        foreach (var c in lcSet.cells)
+                        {
+                            if (c != null && c.gridObjects != null)
+                            {
+                                foreach (var o in c.gridObjects)
+                                {
+                                    if (c.row >= 0 && c.column >= 0 && c.row < Rows.Count && c.column < Rows[c.row].Length && o.layer == layer && tiles.Count < countLimit)
+                                    {
+                                        GridObject gO = Rows[c.row][c.column].SetObject(goSet.mahjongTilePrefab, layer);
+                                        MahjongTile _tile = gO ? (MahjongTile)gO : null;
+
+                                        if (_tile)
+                                        {
+                                            tiles.Add(_tile);
+                                            objectsCount++;
+                                            canSetNextLayer = true;
+                                            processedInLayer++;
+                                            
+                                            // 每创建3个麻将牌就暂停一帧
+                                            if (processedInLayer % 3 == 0)
+                                            {
+                                                yield return null;
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        
+                        Debug.Log($"Layer #{layer}; objects count: {objectsCount}");
+                        
+                        // 每层完成后额外等待一帧
+                        yield return null;
+                    }
+                }
+
+                // 移除最后一个奇数麻将牌
+                if (gMode == GameMode.Play && tiles.Count % 2 != 0)
+                {
+                    MahjongTile mahjongTile = tiles[tiles.Count - 1];
+                    Debug.Log($"remove object: {mahjongTile.ParentCell}; layer: {mahjongTile.Layer}");
+                    mahjongTile.ParentCell.RemoveObject(mahjongTile.Layer, false);
+                    tiles.RemoveAt(tiles.Count - 1);
+                }
+
+                // 缓存原始阻挡信息
+                if (gMode == GameMode.Play)
+                {
+                    int cacheCount = 0;
+                    foreach (var item in tiles)
+                    {
+                        item.CacheRawBlockers();
+                        cacheCount++;
+                        
+                        // 每缓存3个麻将牌就暂停一帧
+                        if (cacheCount % 3 == 0)
+                        {
+                            yield return null;
+                        }
+                    }
+                }
+            }
+            
+            Debug.Log($"[预加载性能] 异步创建麻将牌完成，共创建 {tiles.Count} 个麻将牌");
         }
 
         /// <summary>

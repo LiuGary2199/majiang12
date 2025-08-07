@@ -191,6 +191,8 @@ public class CFellow
     /// combo show
     /// </summary>
     public static string Me_OfAxeFavor= "mg_OnAddScore";
+    
+    public static string mg_OnMahjongClick = "mg_OnMahjongClick";
     /// <summary>
     /// combo show
     /// </summary>

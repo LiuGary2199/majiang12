@@ -122,6 +122,21 @@ namespace Mkey
             if (Camera.main) wPos = Camera.main.ScreenToWorldPoint(touchPos);
 
             List<Collider2D> hl = new List<Collider2D>(Physics2D.OverlapPointAll(new Vector2(wPos.x, wPos.y)));
+            
+            for (int i = 0; i < hl.Count; i++)
+            {
+                var collider = hl[i];
+                var mahjongTile = collider.GetComponent<MahjongTile>();
+                if (mahjongTile != null)
+                {
+                    var boxCollider = collider as BoxCollider2D;
+                 
+                }
+                else
+                {
+                 
+                }
+            }
             if (hl.Count > 0)
             {
                 hl.RemoveAll((coll)=> { return (coll.transform.position.z - camPosZ > distRCZ); });
@@ -132,6 +147,8 @@ namespace Mkey
                 if (hl.Count > 0)
                 {
                     hits = new Collider2D[] { hl[0] };
+                                        var topCollider = hl[0];
+                    var topMahjong = topCollider.GetComponent<MahjongTile>();
                 }
                 else
                 {

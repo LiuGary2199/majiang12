@@ -119,7 +119,7 @@ namespace Mkey
                     ScreenTouchPos = data.position;
                     oldPosition = ScreenTouchPos;
                     pointerID = data.pointerId;
-
+        
                     tpea.SetTouch(ScreenTouchPos, Vector2.zero, TouchPhase.Began, onlyTopCollider);
                     hitList = new List<Collider2D>();
                     hitList.AddRange(tpea.hits);
@@ -127,10 +127,24 @@ namespace Mkey
                     {
                         for (int i = 0; i < hitList.Count; i++)
                         {
-                            ExecuteEvents.Execute<TouchPadMessageTarget>(hitList[i].gameObject, null, (x, y) => x.PointerDown(tpea));
-                            if (tpea.firstSelected == null && hitList[i]) tpea.firstSelected = hitList[i].GetComponent<TouchPadMessageTarget>();
+                            var hitCollider = hitList[i];
+                            var mahjongTile = hitCollider.GetComponent<MahjongTile>();
+                            ExecuteEvents.Execute<TouchPadMessageTarget>(hitCollider.gameObject, null, (x, y) => x.PointerDown(tpea));
+                            if (tpea.firstSelected == null && hitCollider) tpea.firstSelected = hitCollider.GetComponent<TouchPadMessageTarget>();
+                            
+                            // 检查是否点击了麻将牌
+                            if (mahjongTile != null)
+                            {
+                                // 发送麻将点击消息
+                     SharplyResort.ArabSharply(CFellow.mg_OnMahjongClick, null);
+                            }
                         }
                     }
+                    else
+                    {
+                     //   Debug.Log($"[TouchPad] 没有检测到任何碰撞体");
+                    }
+                    
                     ScreenPointerDownEvent?.Invoke(tpea);
                 }
             }

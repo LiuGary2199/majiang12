@@ -77,7 +77,7 @@ namespace Mkey
 		{
 			LoadEvent?.Invoke(number);
 			// 触发UI更新事件，通常用于显示 "关卡 X"
-			UpdateGuiLevelNumberEvent?.Invoke(number + 1);
+			UpdateGuiLevelNumberEvent?.Invoke(GameLevelHolder.CurrentLevel + 1);
 			currentLevel = GameLevelHolder.CurrentLevel;
 		}
 

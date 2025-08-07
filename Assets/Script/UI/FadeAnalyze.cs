@@ -40,7 +40,7 @@ public class FadeAnalyze : MonoBehaviour
     }
     public void LienFade()
     {
-        LimeRatio.CompleteAndLoadNextLevel();
+       // LimeRatio.CompleteAndLoadNextLevel();
         m_ClumpImage = 0;
     }
     private void OnComboUpdate(KeyValuesUpdate kv)

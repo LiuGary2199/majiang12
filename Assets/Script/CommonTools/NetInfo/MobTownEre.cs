@@ -69,10 +69,10 @@ public class MobTownEre : MonoBehaviour
 [UnityEngine.Serialization.FormerlySerializedAs("ready")]    public bool Proof= false;
 [UnityEngine.Serialization.FormerlySerializedAs("BlockRule")]    public BlockRuleData LightThin;
    // ios 获取idfa函数声明
-#if UNITY_IOS
-        [DllImport("__Internal")]
-        internal extern static void getIDFA();
-#endif
+//#if UNITY_IOS
+        //[DllImport("__Internal")]
+       // internal extern static void getIDFA();
+//#endif
     void Awake()
     {
         instance = this;
@@ -95,7 +95,7 @@ public class MobTownEre : MonoBehaviour
         else if (Application.platform == RuntimePlatform.IPhonePlayer)
         {
 #if UNITY_IOS
-            getIDFA();
+          //  getIDFA();
             string idfv = UnityEngine.iOS.Device.vendorIdentifier;
             SameLoomAnalyze.FadChange("idfv", idfv);
 #endif
